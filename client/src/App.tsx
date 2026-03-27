@@ -64,52 +64,83 @@ function ReaderApp() {
     setViewMode("triage");
   }, [selectedFeedId, sidebarView]);
 
-  // Invalidate and advance after triage action
-  const afterTriage = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ["items"] });
+  // Optimistic triage: remove item from cache instantly, roll back on failure
+  const optimisticTriage = useCallback((itemId: number, action: string) => {
+    const queryKey = ["items", selectedFeedId, sidebarView];
+    // Snapshot current cache for rollback
+    const previous = qc.getQueryData<FeedItemWithState[]>(queryKey);
+
+    if (action !== "read_now") {
+      // Optimistically remove from list (skip/queue/pin remove from unread view)
+      qc.setQueryData<FeedItemWithState[]>(queryKey, (old) =>
+        old ? old.filter((item) => item.id !== itemId) : []
+      );
+    }
+
+    // Also optimistically decrement feed unread count
+    qc.setQueryData(["feeds"], (old: any) =>
+      old?.map((f: any) => {
+        const item = previous?.find((i) => i.id === itemId);
+        if (item && f.id === item.feedId && f.unreadCount > 0) {
+          return { ...f, unreadCount: f.unreadCount - 1 };
+        }
+        return f;
+      })
+    );
+
+    return { previous, queryKey };
+  }, [qc, selectedFeedId, sidebarView]);
+
+  const rollback = useCallback((ctx: { previous: any; queryKey: any }) => {
+    if (ctx.previous) {
+      qc.setQueryData(ctx.queryKey, ctx.previous);
+    }
     qc.invalidateQueries({ queryKey: ["feeds"] });
-    // Don't advance index - the item will disappear from the unread list
-    // and the next item will slide into this position
   }, [qc]);
 
-  const handleSkip = useCallback(async () => {
+  const handleSkip = useCallback(() => {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "skip" };
-    await api.triageItem(currentItem.id, "skip");
+    const ctx = optimisticTriage(currentItem.id, "skip");
     setViewMode("triage");
-    afterTriage();
-  }, [currentItem, afterTriage]);
+    api.triageItem(currentItem.id, "skip").catch(() => rollback(ctx));
+  }, [currentItem, optimisticTriage, rollback]);
 
   const handleReadNow = useCallback(() => {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "read_now" };
+    optimisticTriage(currentItem.id, "read_now");
     setViewMode("reading");
     api.triageItem(currentItem.id, "read_now");
     api.markRead(currentItem.id, true);
-  }, [currentItem]);
+  }, [currentItem, optimisticTriage]);
 
-  const handleQueue = useCallback(async () => {
+  const handleQueue = useCallback(() => {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "queue" };
-    await api.triageItem(currentItem.id, "queue");
+    const ctx = optimisticTriage(currentItem.id, "queue");
     setViewMode("triage");
-    afterTriage();
-  }, [currentItem, afterTriage]);
+    api.triageItem(currentItem.id, "queue").catch(() => rollback(ctx));
+  }, [currentItem, optimisticTriage, rollback]);
 
-  const handlePin = useCallback(async () => {
+  const handlePin = useCallback(() => {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "pin" };
-    await api.triageItem(currentItem.id, "pin");
+    const ctx = optimisticTriage(currentItem.id, "pin");
     setViewMode("triage");
-    afterTriage();
-  }, [currentItem, afterTriage]);
+    api.triageItem(currentItem.id, "pin").catch(() => rollback(ctx));
+  }, [currentItem, optimisticTriage, rollback]);
 
-  const handleUndo = useCallback(async () => {
+  const handleUndo = useCallback(() => {
     if (!lastAction.current) return;
-    await api.undoTriage(lastAction.current.itemId);
+    const id = lastAction.current.itemId;
     lastAction.current = null;
-    afterTriage();
-  }, [afterTriage]);
+    // Refetch to bring the item back
+    api.undoTriage(id).then(() => {
+      qc.invalidateQueries({ queryKey: ["items"] });
+      qc.invalidateQueries({ queryKey: ["feeds"] });
+    });
+  }, [qc]);
 
   const handleStar = useCallback(async () => {
     if (!currentItem) return;
@@ -119,8 +150,9 @@ function ReaderApp() {
 
   const handleMarkAllRead = useCallback(async () => {
     await api.markAllRead(selectedFeedId ?? undefined);
-    afterTriage();
-  }, [selectedFeedId, afterTriage]);
+    qc.invalidateQueries({ queryKey: ["items"] });
+    qc.invalidateQueries({ queryKey: ["feeds"] });
+  }, [selectedFeedId, qc]);
 
   const handleRefresh = useCallback(async () => {
     await api.pollAllFeeds();
