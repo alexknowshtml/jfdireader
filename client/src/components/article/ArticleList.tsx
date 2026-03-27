@@ -45,6 +45,7 @@ export function ArticleList({
           height: `${virtualizer.getTotalSize()}px`,
           width: "100%",
           position: "relative",
+          paddingBottom: "4rem",
         }}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => {
