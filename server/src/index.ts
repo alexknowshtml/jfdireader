@@ -1,10 +1,12 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { serveStatic } from "hono/bun";
 import { feedsRouter } from "./routes/feeds";
 import { itemsRouter } from "./routes/items";
 import { foldersRouter } from "./routes/folders";
 import { startPolling } from "./services/poller";
+import { resolve } from "path";
 
 const app = new Hono();
 
@@ -12,7 +14,7 @@ app.use("*", logger());
 app.use(
   "/api/*",
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"], // Vite dev server
+    origin: (origin) => origin, // Allow all origins in dev
   })
 );
 
@@ -23,6 +25,12 @@ app.get("/health", (c) => c.json({ status: "ok", version: "0.1.0" }));
 app.route("/api/feeds", feedsRouter);
 app.route("/api/items", itemsRouter);
 app.route("/api/folders", foldersRouter);
+
+// Serve built client static files
+const clientDist = resolve(import.meta.dir, "../../client/dist");
+app.use("/*", serveStatic({ root: clientDist }));
+// SPA fallback - serve index.html for all non-API, non-file routes
+app.get("/*", serveStatic({ root: clientDist, path: "/index.html" }));
 
 // Start background feed polling (every 5 minutes)
 startPolling(5 * 60 * 1000);
