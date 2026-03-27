@@ -63,24 +63,8 @@ export function ReadingPane({ item }: ReadingPaneProps) {
           }}
         />
 
-        {/* Footer actions hint */}
-        <div className="mt-12 pt-4 border-t text-xs text-muted-foreground flex gap-4">
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">s</kbd> skip
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">q</kbd> queue
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">f</kbd> star
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">v</kbd> original
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Esc</kbd> back
-          </span>
-        </div>
+        {/* Bottom spacer so content doesn't get hidden behind the bar */}
+        <div className="h-16" />
       </div>
     </div>
   );

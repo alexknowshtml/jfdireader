@@ -75,6 +75,7 @@ function ReaderApp() {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "skip" };
     await api.triageItem(currentItem.id, "skip");
+    setViewMode("triage");
     afterTriage();
   }, [currentItem, afterTriage]);
 
@@ -90,6 +91,7 @@ function ReaderApp() {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "queue" };
     await api.triageItem(currentItem.id, "queue");
+    setViewMode("triage");
     afterTriage();
   }, [currentItem, afterTriage]);
 
@@ -97,6 +99,7 @@ function ReaderApp() {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "pin" };
     await api.triageItem(currentItem.id, "pin");
+    setViewMode("triage");
     afterTriage();
   }, [currentItem, afterTriage]);
 
@@ -216,7 +219,17 @@ function ReaderApp() {
           <ArticleList
             items={items}
             selectedIndex={selectedIndex}
-            onSelect={(i) => setSelectedIndex(i)}
+            onSelect={(i) => {
+              setSelectedIndex(i);
+              // Click opens reading mode directly
+              const item = items[i];
+              if (item) {
+                lastAction.current = { itemId: item.id, action: "read_now" };
+                setViewMode("reading");
+                api.triageItem(item.id, "read_now");
+                api.markRead(item.id, true);
+              }
+            }}
             viewMode="expanded"
           />
         )}
@@ -231,6 +244,44 @@ function ReaderApp() {
             onPin={handlePin}
             onStar={handleStar}
           />
+        )}
+
+        {/* Reading mode bar */}
+        {viewMode === "reading" && currentItem && (
+          <div className="h-12 border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0">
+            <button
+              onClick={() => setViewMode("triage")}
+              className="text-xs px-3 py-1.5 rounded-md hover:bg-accent flex items-center gap-1.5"
+            >
+              ← Back
+              <kbd className="text-[10px] opacity-60">Esc</kbd>
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={handleSkip}
+              className="text-xs px-3 py-1.5 rounded-md text-muted-foreground hover:bg-accent"
+            >
+              Skip <kbd className="text-[10px] opacity-60">s</kbd>
+            </button>
+            <button
+              onClick={handleQueue}
+              className="text-xs px-3 py-1.5 rounded-md bg-accent hover:bg-accent/80"
+            >
+              Queue <kbd className="text-[10px] opacity-60">q</kbd>
+            </button>
+            <button
+              onClick={handleStar}
+              className={`text-xs px-3 py-1.5 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
+            >
+              {currentItem.isStarred ? "★" : "☆"} <kbd className="text-[10px] opacity-60">f</kbd>
+            </button>
+            <button
+              onClick={() => { if (currentItem?.url) window.open(currentItem.url, "_blank"); }}
+              className="text-xs px-3 py-1.5 rounded-md text-muted-foreground hover:bg-accent"
+            >
+              Original <kbd className="text-[10px] opacity-60">v</kbd>
+            </button>
+          </div>
         )}
       </div>
 
