@@ -30,6 +30,11 @@ export function useKeyboardNav(options: KeyboardNavOptions) {
         return;
       }
 
+      // Don't capture browser shortcuts (Cmd+R, Cmd+L, Cmd+T, etc.)
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
+
       switch (e.key) {
         case "j":
         case "ArrowDown":

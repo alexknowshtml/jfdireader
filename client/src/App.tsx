@@ -16,10 +16,51 @@ import {
 import * as api from "@/lib/api";
 import type { FeedItemWithState } from "../../shared/types";
 
+// Simple localStorage cache for instant loads
+const CACHE_KEY = "jfdi-reader-cache";
+const CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
+
+function loadCache(): Record<string, any> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return {};
+    const { data, timestamp } = JSON.parse(raw);
+    if (Date.now() - timestamp > CACHE_MAX_AGE) return {};
+    return data || {};
+  } catch { return {}; }
+}
+
+function saveCache(key: string, data: any) {
+  try {
+    const existing = loadCache();
+    existing[key] = data;
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data: existing, timestamp: Date.now() }));
+  } catch { /* quota exceeded, ignore */ }
+}
+
+const cache = loadCache();
+
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 30_000, refetchOnWindowFocus: true },
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: true,
+      placeholderData: (prev: any, query: any) => {
+        if (prev) return prev;
+        const key = JSON.stringify(query.queryKey);
+        return cache[key];
+      },
+    },
+    mutations: {},
   },
+});
+
+// Persist query results to localStorage
+queryClient.getQueryCache().subscribe((event) => {
+  if (event.type === "updated" && event.action.type === "success") {
+    const key = JSON.stringify(event.query.queryKey);
+    saveCache(key, event.query.state.data);
+  }
 });
 
 type ViewMode = "triage" | "reading";
