@@ -255,7 +255,7 @@ function ReaderApp() {
               ☰
             </button>
             <div className="flex gap-1 flex-1 min-w-0">
-              <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={sidebarView === "unread" ? items.length : undefined} />
+              <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={sidebarView === "unread" ? totalUnread : undefined} />
               <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
               <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
               <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} />
