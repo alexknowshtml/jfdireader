@@ -8,6 +8,7 @@ interface ArticleListProps {
   selectedIndex: number;
   onSelect: (index: number) => void;
   viewMode: "expanded" | "headlines";
+  isLoading?: boolean;
 }
 
 export function ArticleList({
@@ -15,6 +16,7 @@ export function ArticleList({
   selectedIndex,
   onSelect,
   viewMode,
+  isLoading,
 }: ArticleListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +35,11 @@ export function ArticleList({
   if (items.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-        No items to show. Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs mx-1">r</kbd> to refresh feeds.
+        {isLoading ? (
+          <div className="animate-spin w-5 h-5 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full" />
+        ) : (
+          <>No items to show. Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs mx-1">r</kbd> to refresh feeds.</>
+        )}
       </div>
     );
   }

@@ -102,7 +102,7 @@ function ReaderApp() {
   });
 
   // Fetch items based on current view
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isFetching } = useQuery({
     queryKey: ["items", selectedFeedId, sidebarView],
     queryFn: () =>
       sidebarView === "queue"
@@ -392,6 +392,7 @@ function ReaderApp() {
               }
             }}
             viewMode="expanded"
+            isLoading={isFetching && items.length === 0}
           />
         )}
 
