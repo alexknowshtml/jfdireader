@@ -131,7 +131,6 @@ export function Sidebar({
                   isSelected={selectedFeedId === feed.id}
                   onSelect={() => {
                     onSelectFeed(feed.id);
-                    onSelectView("unread");
                   }}
                   onSettings={() => onFeedSettings(feed.id)}
                 />
@@ -150,7 +149,6 @@ export function Sidebar({
                   isSelected={selectedFeedId === feed.id}
                   onSelect={() => {
                     onSelectFeed(feed.id);
-                    onSelectView("unread");
                   }}
                   onSettings={() => onFeedSettings(feed.id)}
                 />

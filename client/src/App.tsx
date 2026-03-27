@@ -317,7 +317,7 @@ function ReaderApp() {
           selectedView={sidebarView === "starred" ? "starred" : "all"}
           onSelectFeed={(id) => {
             setSelectedFeedId(id);
-            setSidebarView("unread");
+            // Keep current view (inbox/queue/starred) - just add feed filter
             setSidebarOpen(false);
           }}
           onSelectView={(v) => {
