@@ -275,10 +275,10 @@ function ReaderApp() {
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
-          <div className="border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0 pb-[max(env(safe-area-inset-bottom),1.5rem)] min-h-12">
+          <div className="border-t bg-muted/30 flex items-center px-4 py-3 gap-2 flex-shrink-0 pb-[max(env(safe-area-inset-bottom),1.5rem)]">
             <button
               onClick={() => setViewMode("triage")}
-              className="text-xs px-3 py-1.5 rounded-md hover:bg-accent flex items-center gap-1.5"
+              className="text-xs px-3 py-2 rounded-md hover:bg-accent flex items-center gap-1.5"
             >
               ← Back
               <kbd className="text-[10px] opacity-60">Esc</kbd>
@@ -286,13 +286,13 @@ function ReaderApp() {
             <div className="flex-1" />
             <button
               onClick={handleSkip}
-              className="text-xs px-3 py-1.5 rounded-md text-muted-foreground hover:bg-accent"
+              className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
               Skip <kbd className="text-[10px] opacity-60">s</kbd>
             </button>
             <button
               onClick={handleQueue}
-              className="text-xs px-3 py-1.5 rounded-md bg-accent hover:bg-accent/80"
+              className="text-xs px-3 py-2 rounded-md bg-accent hover:bg-accent/80"
             >
               Queue <kbd className="text-[10px] opacity-60">q</kbd>
             </button>
@@ -304,7 +304,7 @@ function ReaderApp() {
             </button>
             <button
               onClick={() => { if (currentItem?.url) window.open(currentItem.url, "_blank"); }}
-              className="text-xs px-3 py-1.5 rounded-md text-muted-foreground hover:bg-accent"
+              className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
               Original <kbd className="text-[10px] opacity-60">v</kbd>
             </button>
