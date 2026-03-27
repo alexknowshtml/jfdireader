@@ -197,7 +197,7 @@ function FeedItem({
       <span className="flex items-center gap-1">
         <button
           onClick={(e) => { e.stopPropagation(); onSettings(); }}
-          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground px-1 text-xs"
+          className="opacity-30 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-foreground px-1 text-xs"
           title="Feed settings"
         >
           ⚙
