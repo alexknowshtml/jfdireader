@@ -341,10 +341,23 @@ function ReaderApp() {
               ☰
             </button>
             <div className="flex gap-1 min-w-0">
-              <ViewButton label="Inbox" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={totalUnread || undefined} />
-              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} count={totalQueued || undefined} />
-              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
+              <ViewButton label="Inbox" active={sidebarView === "unread" && !selectedFeedId} onClick={() => { setSidebarView("unread"); setSelectedFeedId(null); }} count={totalUnread || undefined} />
+              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => { setSidebarView("queue"); setSelectedFeedId(null); }} count={totalQueued || undefined} />
+              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => { setSidebarView("starred"); setSelectedFeedId(null); }} />
             </div>
+            {/* Feed filter chip */}
+            {selectedFeedId && (() => {
+              const feed = feeds.find(f => f.id === selectedFeedId);
+              return feed ? (
+                <button
+                  onClick={() => setSelectedFeedId(null)}
+                  className="text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground flex items-center gap-1.5 max-w-[200px] truncate"
+                >
+                  <span className="truncate">{feed.title}</span>
+                  <span className="opacity-70">✕</span>
+                </button>
+              ) : null;
+            })()}
             <div className="flex-1" />
             {isLoading && (
               <span className="text-xs text-muted-foreground">Loading</span>
