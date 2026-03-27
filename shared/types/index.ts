@@ -1,5 +1,9 @@
 // Shared types between server and client
 
+export type EngagementTier = "unseen" | "seen" | "decided" | "consumed" | "acted_on";
+export type TriageAction = "skip" | "read_now" | "queue" | "pin";
+export type DigestMode = "realtime" | "daily" | "filtered";
+
 export interface Feed {
   id: number;
   url: string;
@@ -34,10 +38,31 @@ export interface FeedItem {
 
 export interface ItemState {
   itemId: number;
+  engagementTier: EngagementTier;
+  triageAction: TriageAction | null;
+  triageAt: string | null;
+  queuedAt: string | null;
+  isPinned: boolean;
+  pinnedAt: string | null;
+  queuePosition: number | null;
   isRead: boolean;
   isStarred: boolean;
   readAt: string | null;
   starredAt: string | null;
+  scrollDepth: number | null;
+  dwellTimeSeconds: number | null;
+  isCompleted: boolean;
+  sharedAt: string | null;
+  sentAt: string | null;
+  savedAt: string | null;
+  fueledAt: string | null;
+}
+
+export interface FeedSettings {
+  feedId: number;
+  relevanceBlurbsEnabled: boolean;
+  digestMode: DigestMode;
+  autoMarkReadDays: number | null;
 }
 
 export interface Folder {
@@ -58,8 +83,12 @@ export interface FeedWithUnread extends Feed {
 }
 
 export interface FeedItemWithState extends FeedItem {
+  engagementTier: EngagementTier;
+  triageAction: TriageAction | null;
   isRead: boolean;
   isStarred: boolean;
+  isPinned: boolean;
+  queuedAt: string | null;
   feedTitle: string | null;
   feedIconUrl: string | null;
 }

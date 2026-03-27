@@ -9,6 +9,7 @@ itemsRouter.get("/", async (c) => {
   const feedId = c.req.query("feedId");
   const starred = c.req.query("starred");
   const unread = c.req.query("unread");
+  const queued = c.req.query("queued");
   const limit = parseInt(c.req.query("limit") || "50");
   const offset = parseInt(c.req.query("offset") || "0");
 
@@ -26,12 +27,12 @@ itemsRouter.get("/", async (c) => {
       fetchedAt: schema.items.fetchedAt,
       thumbnailUrl: schema.items.thumbnailUrl,
       wordCount: schema.items.wordCount,
-      isRead: sql<boolean>`COALESCE(${schema.itemState.isRead}, 0)`.as(
-        "is_read"
-      ),
-      isStarred: sql<boolean>`COALESCE(${schema.itemState.isStarred}, 0)`.as(
-        "is_starred"
-      ),
+      engagementTier: sql<string>`COALESCE(${schema.itemState.engagementTier}, 'unseen')`.as("engagement_tier"),
+      triageAction: schema.itemState.triageAction,
+      isRead: sql<boolean>`COALESCE(${schema.itemState.isRead}, 0)`.as("is_read"),
+      isStarred: sql<boolean>`COALESCE(${schema.itemState.isStarred}, 0)`.as("is_starred"),
+      isPinned: sql<boolean>`COALESCE(${schema.itemState.isPinned}, 0)`.as("is_pinned"),
+      queuedAt: schema.itemState.queuedAt,
       feedTitle: schema.feeds.title,
       feedIconUrl: schema.feeds.iconUrl,
     })
@@ -54,12 +55,89 @@ itemsRouter.get("/", async (c) => {
       sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)`
     );
   }
+  if (queued === "true") {
+    query = query.where(sql`${schema.itemState.triageAction} IN ('queue', 'pin')`);
+    // Pinned items first, then by queue position
+    query = query.orderBy(
+      desc(schema.itemState.isPinned),
+      schema.itemState.queuePosition
+    );
+  }
 
   const result = await query;
   return c.json(result);
 });
 
-// Mark item as read/unread
+// Triage an item (skip / read_now / queue / pin)
+itemsRouter.patch("/:id/triage", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const { action } = await c.req.json<{ action: "skip" | "read_now" | "queue" | "pin" }>();
+  const now = new Date().toISOString();
+
+  const tierMap = {
+    skip: "decided",
+    read_now: "consumed",
+    queue: "decided",
+    pin: "decided",
+  } as const;
+
+  const values: Record<string, unknown> = {
+    itemId: id,
+    triageAction: action,
+    triageAt: now,
+    engagementTier: tierMap[action],
+  };
+
+  if (action === "skip") {
+    values.isRead = true;
+    values.readAt = now;
+  }
+  if (action === "queue" || action === "pin") {
+    values.queuedAt = now;
+    values.isPinned = action === "pin";
+    if (action === "pin") values.pinnedAt = now;
+  }
+
+  await db
+    .insert(schema.itemState)
+    .values(values as typeof schema.itemState.$inferInsert)
+    .onConflictDoUpdate({
+      target: schema.itemState.itemId,
+      set: values,
+    });
+
+  return c.json({ ok: true });
+});
+
+// Record implicit signals (scroll depth, dwell time)
+itemsRouter.patch("/:id/signal", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const body = await c.req.json<{
+    scrollDepth?: number;
+    dwellTimeSeconds?: number;
+    isCompleted?: boolean;
+  }>();
+
+  const set: Record<string, unknown> = {};
+  if (body.scrollDepth !== undefined) set.scrollDepth = body.scrollDepth;
+  if (body.dwellTimeSeconds !== undefined) set.dwellTimeSeconds = body.dwellTimeSeconds;
+  if (body.isCompleted !== undefined) {
+    set.isCompleted = body.isCompleted;
+    if (body.isCompleted) set.engagementTier = "consumed";
+  }
+
+  await db
+    .insert(schema.itemState)
+    .values({ itemId: id, ...set } as typeof schema.itemState.$inferInsert)
+    .onConflictDoUpdate({
+      target: schema.itemState.itemId,
+      set,
+    });
+
+  return c.json({ ok: true });
+});
+
+// Mark item as read/unread (legacy + updates engagement tier)
 itemsRouter.patch("/:id/read", async (c) => {
   const id = parseInt(c.req.param("id"));
   const { isRead } = await c.req.json<{ isRead: boolean }>();
@@ -70,12 +148,14 @@ itemsRouter.patch("/:id/read", async (c) => {
       itemId: id,
       isRead,
       readAt: isRead ? new Date().toISOString() : null,
+      engagementTier: isRead ? "consumed" : "seen",
     })
     .onConflictDoUpdate({
       target: schema.itemState.itemId,
       set: {
         isRead,
         readAt: isRead ? new Date().toISOString() : null,
+        engagementTier: isRead ? "consumed" : "seen",
       },
     });
 
@@ -108,21 +188,20 @@ itemsRouter.patch("/:id/star", async (c) => {
 // Mark all as read (for a feed or all)
 itemsRouter.post("/mark-all-read", async (c) => {
   const { feedId } = await c.req.json<{ feedId?: number }>();
+  const now = new Date().toISOString();
 
   if (feedId) {
-    // Mark all items in a specific feed as read
     await db.run(sql`
-      INSERT OR REPLACE INTO item_state (item_id, is_read, read_at)
-      SELECT i.id, 1, ${new Date().toISOString()}
+      INSERT OR REPLACE INTO item_state (item_id, is_read, read_at, engagement_tier, triage_action, triage_at)
+      SELECT i.id, 1, ${now}, 'decided', 'skip', ${now}
       FROM items i
       LEFT JOIN item_state s ON s.item_id = i.id
       WHERE i.feed_id = ${feedId} AND (s.is_read IS NULL OR s.is_read = 0)
     `);
   } else {
-    // Mark everything as read
     await db.run(sql`
-      INSERT OR REPLACE INTO item_state (item_id, is_read, read_at)
-      SELECT i.id, 1, ${new Date().toISOString()}
+      INSERT OR REPLACE INTO item_state (item_id, is_read, read_at, engagement_tier, triage_action, triage_at)
+      SELECT i.id, 1, ${now}, 'decided', 'skip', ${now}
       FROM items i
       LEFT JOIN item_state s ON s.item_id = i.id
       WHERE s.is_read IS NULL OR s.is_read = 0
@@ -130,4 +209,32 @@ itemsRouter.post("/mark-all-read", async (c) => {
   }
 
   return c.json({ ok: true });
+});
+
+// Reading queue endpoint
+itemsRouter.get("/queue", async (c) => {
+  const result = await db
+    .select({
+      id: schema.items.id,
+      feedId: schema.items.feedId,
+      url: schema.items.url,
+      title: schema.items.title,
+      author: schema.items.author,
+      content: schema.items.content,
+      summary: schema.items.summary,
+      publishedAt: schema.items.publishedAt,
+      wordCount: schema.items.wordCount,
+      isPinned: schema.itemState.isPinned,
+      queuedAt: schema.itemState.queuedAt,
+      queuePosition: schema.itemState.queuePosition,
+      feedTitle: schema.feeds.title,
+      feedIconUrl: schema.feeds.iconUrl,
+    })
+    .from(schema.items)
+    .innerJoin(schema.itemState, eq(schema.items.id, schema.itemState.itemId))
+    .innerJoin(schema.feeds, eq(schema.items.feedId, schema.feeds.id))
+    .where(sql`${schema.itemState.triageAction} IN ('queue', 'pin') AND ${schema.itemState.isRead} = 0`)
+    .orderBy(desc(schema.itemState.isPinned), schema.itemState.queuePosition);
+
+  return c.json(result);
 });
