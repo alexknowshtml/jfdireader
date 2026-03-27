@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { feedsRouter } from "./routes/feeds";
 import { itemsRouter } from "./routes/items";
 import { foldersRouter } from "./routes/folders";
+import { startPolling } from "./services/poller";
 
 const app = new Hono();
 
@@ -22,6 +23,9 @@ app.get("/health", (c) => c.json({ status: "ok", version: "0.1.0" }));
 app.route("/api/feeds", feedsRouter);
 app.route("/api/items", itemsRouter);
 app.route("/api/folders", foldersRouter);
+
+// Start background feed polling (every 5 minutes)
+startPolling(5 * 60 * 1000);
 
 const port = parseInt(process.env.PORT || "3000");
 console.log(`JFDI Reader server running on http://localhost:${port}`);
