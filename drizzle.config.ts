@@ -5,6 +5,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: "./data/goodreader.db",
+    url: "./data/jfdireader.db",
   },
 });

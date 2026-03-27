@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 import { resolve } from "path";
 
-const DB_PATH = resolve(process.env.GOODREADER_DB_PATH || "./data/goodreader.db");
+const DB_PATH = resolve(process.env.JFDIREADER_DB_PATH || "./data/jfdireader.db");
 
 const sqlite = new Database(DB_PATH);
 sqlite.pragma("journal_mode = WAL");

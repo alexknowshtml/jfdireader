@@ -21,8 +21,8 @@ const DEMO_ITEMS: FeedItemWithState[] = [
     feedId: 1,
     guid: "1",
     url: "https://example.com/welcome",
-    title: "Welcome to Goodreader",
-    author: "Goodreader",
+    title: "Welcome to JFDI Reader",
+    author: "JFDI Reader",
     content: "<p>Your modern RSS reader is ready. Add feeds to get started.</p>",
     summary:
       "Your modern RSS reader is ready. Subscribe to your first feed to start reading.",

@@ -24,7 +24,7 @@ app.route("/api/items", itemsRouter);
 app.route("/api/folders", foldersRouter);
 
 const port = parseInt(process.env.PORT || "3000");
-console.log(`Goodreader server running on http://localhost:${port}`);
+console.log(`JFDI Reader server running on http://localhost:${port}`);
 
 export default {
   port,

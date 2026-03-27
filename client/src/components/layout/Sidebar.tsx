@@ -37,7 +37,7 @@ export function Sidebar({
   return (
     <div className="w-64 border-r bg-sidebar flex flex-col h-full">
       <div className="p-4 font-semibold text-lg tracking-tight">
-        Goodreader
+        JFDI Reader
       </div>
       <Separator />
       <ScrollArea className="flex-1">
