@@ -1,0 +1,133 @@
+import { Hono } from "hono";
+import { db, schema } from "../db";
+import { eq, desc, and, sql, isNull } from "drizzle-orm";
+
+export const itemsRouter = new Hono();
+
+// List items (with filtering)
+itemsRouter.get("/", async (c) => {
+  const feedId = c.req.query("feedId");
+  const starred = c.req.query("starred");
+  const unread = c.req.query("unread");
+  const limit = parseInt(c.req.query("limit") || "50");
+  const offset = parseInt(c.req.query("offset") || "0");
+
+  let query = db
+    .select({
+      id: schema.items.id,
+      feedId: schema.items.feedId,
+      guid: schema.items.guid,
+      url: schema.items.url,
+      title: schema.items.title,
+      author: schema.items.author,
+      content: schema.items.content,
+      summary: schema.items.summary,
+      publishedAt: schema.items.publishedAt,
+      fetchedAt: schema.items.fetchedAt,
+      thumbnailUrl: schema.items.thumbnailUrl,
+      wordCount: schema.items.wordCount,
+      isRead: sql<boolean>`COALESCE(${schema.itemState.isRead}, 0)`.as(
+        "is_read"
+      ),
+      isStarred: sql<boolean>`COALESCE(${schema.itemState.isStarred}, 0)`.as(
+        "is_starred"
+      ),
+      feedTitle: schema.feeds.title,
+      feedIconUrl: schema.feeds.iconUrl,
+    })
+    .from(schema.items)
+    .leftJoin(schema.itemState, eq(schema.items.id, schema.itemState.itemId))
+    .innerJoin(schema.feeds, eq(schema.items.feedId, schema.feeds.id))
+    .orderBy(desc(schema.items.publishedAt))
+    .limit(limit)
+    .offset(offset)
+    .$dynamic();
+
+  if (feedId) {
+    query = query.where(eq(schema.items.feedId, parseInt(feedId)));
+  }
+  if (starred === "true") {
+    query = query.where(eq(schema.itemState.isStarred, true));
+  }
+  if (unread === "true") {
+    query = query.where(
+      sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)`
+    );
+  }
+
+  const result = await query;
+  return c.json(result);
+});
+
+// Mark item as read/unread
+itemsRouter.patch("/:id/read", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const { isRead } = await c.req.json<{ isRead: boolean }>();
+
+  await db
+    .insert(schema.itemState)
+    .values({
+      itemId: id,
+      isRead,
+      readAt: isRead ? new Date().toISOString() : null,
+    })
+    .onConflictDoUpdate({
+      target: schema.itemState.itemId,
+      set: {
+        isRead,
+        readAt: isRead ? new Date().toISOString() : null,
+      },
+    });
+
+  return c.json({ ok: true });
+});
+
+// Star/unstar item
+itemsRouter.patch("/:id/star", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const { isStarred } = await c.req.json<{ isStarred: boolean }>();
+
+  await db
+    .insert(schema.itemState)
+    .values({
+      itemId: id,
+      isStarred,
+      starredAt: isStarred ? new Date().toISOString() : null,
+    })
+    .onConflictDoUpdate({
+      target: schema.itemState.itemId,
+      set: {
+        isStarred,
+        starredAt: isStarred ? new Date().toISOString() : null,
+      },
+    });
+
+  return c.json({ ok: true });
+});
+
+// Mark all as read (for a feed or all)
+itemsRouter.post("/mark-all-read", async (c) => {
+  const { feedId } = await c.req.json<{ feedId?: number }>();
+
+  if (feedId) {
+    // Mark all items in a specific feed as read
+    await db.run(sql`
+      INSERT OR REPLACE INTO item_state (item_id, is_read, read_at)
+      SELECT i.id, 1, ${new Date().toISOString()}
+      FROM items i
+      LEFT JOIN item_state s ON s.item_id = i.id
+      WHERE i.feed_id = ${feedId} AND (s.is_read IS NULL OR s.is_read = 0)
+    `);
+  } else {
+    // Mark everything as read
+    await db.run(sql`
+      INSERT OR REPLACE INTO item_state (item_id, is_read, read_at)
+      SELECT i.id, 1, ${new Date().toISOString()}
+      FROM items i
+      LEFT JOIN item_state s ON s.item_id = i.id
+      WHERE s.is_read IS NULL OR s.is_read = 0
+    `);
+  }
+
+  return c.json({ ok: true });
+});
