@@ -296,7 +296,7 @@ function ReaderApp() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="flex h-dvh bg-background text-foreground">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -331,7 +331,7 @@ function ReaderApp() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Toolbar - with safe area top padding for mobile notch */}
         <div className="border-b flex-shrink-0 pt-[env(safe-area-inset-top)]">
           <div className="h-12 flex items-center px-4 gap-2">
