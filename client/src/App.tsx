@@ -102,7 +102,8 @@ function ReaderApp() {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "skip" };
     const ctx = optimisticTriage(currentItem.id, "skip");
-    setViewMode("triage");
+    // Stay in current mode - if reading, the next item slides in
+    // (optimistic removal shifts the list, so selectedIndex now points to the next item)
     api.triageItem(currentItem.id, "skip").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
@@ -119,7 +120,7 @@ function ReaderApp() {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "queue" };
     const ctx = optimisticTriage(currentItem.id, "queue");
-    setViewMode("triage");
+    // Stay in current mode - next item slides in
     api.triageItem(currentItem.id, "queue").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
@@ -127,7 +128,7 @@ function ReaderApp() {
     if (!currentItem) return;
     lastAction.current = { itemId: currentItem.id, action: "pin" };
     const ctx = optimisticTriage(currentItem.id, "pin");
-    setViewMode("triage");
+    // Stay in current mode - next item slides in
     api.triageItem(currentItem.id, "pin").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
