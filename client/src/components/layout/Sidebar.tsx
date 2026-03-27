@@ -192,16 +192,16 @@ function FeedItem({
         )}
         <span className="truncate">{feed.title || "Untitled"}</span>
       </span>
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-1 flex-shrink-0">
         <button
           onClick={(e) => { e.stopPropagation(); onSettings(); }}
-          className="opacity-30 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-foreground px-1 text-xs"
+          className="hidden md:block opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground w-5 text-center text-xs"
           title="Feed settings"
         >
           ⚙
         </button>
         {feed.unreadCount > 0 && (
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full flex-shrink-0">
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full flex-shrink-0 min-w-[1.5rem] text-center">
             {feed.unreadCount}
           </span>
         )}
