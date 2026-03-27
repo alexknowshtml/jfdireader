@@ -76,7 +76,7 @@ function ReaderApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const lastAction = useRef<{ itemId: number; action: string } | null>(null);
+  const lastAction = useRef<{ itemId: number; action: string; snapshot: FeedItemWithState[] | undefined; queryKey: any[] } | null>(null);
 
   // Fetch feeds for sidebar
   const { data: feeds = [] } = useQuery({
@@ -142,17 +142,15 @@ function ReaderApp() {
 
   const handleSkip = useCallback(() => {
     if (!currentItem) return;
-    lastAction.current = { itemId: currentItem.id, action: "skip" };
     const ctx = optimisticTriage(currentItem.id, "skip");
-    // Stay in current mode - if reading, the next item slides in
-    // (optimistic removal shifts the list, so selectedIndex now points to the next item)
+    lastAction.current = { itemId: currentItem.id, action: "skip", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "skip").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
   const handleReadNow = useCallback(() => {
     if (!currentItem) return;
-    lastAction.current = { itemId: currentItem.id, action: "read_now" };
-    optimisticTriage(currentItem.id, "read_now");
+    const ctx = optimisticTriage(currentItem.id, "read_now");
+    lastAction.current = { itemId: currentItem.id, action: "read_now", snapshot: ctx.previous, queryKey: ctx.queryKey };
     setViewMode("reading");
     api.triageItem(currentItem.id, "read_now");
     api.markRead(currentItem.id, true);
@@ -160,29 +158,31 @@ function ReaderApp() {
 
   const handleQueue = useCallback(() => {
     if (!currentItem) return;
-    lastAction.current = { itemId: currentItem.id, action: "queue" };
     const ctx = optimisticTriage(currentItem.id, "queue");
-    // Stay in current mode - next item slides in
+    lastAction.current = { itemId: currentItem.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "queue").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
   const handlePin = useCallback(() => {
     if (!currentItem) return;
-    lastAction.current = { itemId: currentItem.id, action: "pin" };
     const ctx = optimisticTriage(currentItem.id, "pin");
-    // Stay in current mode - next item slides in
+    lastAction.current = { itemId: currentItem.id, action: "pin", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "pin").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
   const handleUndo = useCallback(() => {
     if (!lastAction.current) return;
+    const { snapshot, queryKey } = lastAction.current;
+    // Instantly restore the previous list from snapshot
+    if (snapshot) {
+      qc.setQueryData(queryKey, snapshot);
+    }
+    // Also bump feed unread counts back up
+    qc.invalidateQueries({ queryKey: ["feeds"] });
+    // Fire API call in background
     const id = lastAction.current.itemId;
     lastAction.current = null;
-    // Refetch to bring the item back
-    api.undoTriage(id).then(() => {
-      qc.invalidateQueries({ queryKey: ["items"] });
-      qc.invalidateQueries({ queryKey: ["feeds"] });
-    });
+    api.undoTriage(id);
   }, [qc]);
 
   const handleStar = useCallback(async () => {
@@ -326,7 +326,9 @@ function ReaderApp() {
               // Click opens reading mode directly
               const item = items[i];
               if (item) {
-                lastAction.current = { itemId: item.id, action: "read_now" };
+                const queryKey = ["items", selectedFeedId, sidebarView];
+                const snapshot = qc.getQueryData<FeedItemWithState[]>(queryKey);
+                lastAction.current = { itemId: item.id, action: "read_now", snapshot, queryKey };
                 setViewMode("reading");
                 api.triageItem(item.id, "read_now");
                 api.markRead(item.id, true);
