@@ -33,6 +33,7 @@ function ReaderApp() {
   const [viewMode, setViewMode] = useState<ViewMode>("triage");
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const lastAction = useRef<{ itemId: number; action: string } | null>(null);
 
   // Fetch feeds for sidebar
@@ -176,25 +177,49 @@ function ReaderApp() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <Sidebar
-        folders={[]}
-        unfiledFeeds={unfiledFeeds}
-        selectedFeedId={selectedFeedId}
-        selectedView={sidebarView === "starred" ? "starred" : "all"}
-        onSelectFeed={(id) => {
-          setSelectedFeedId(id);
-          setSidebarView("unread");
-        }}
-        onSelectView={(v) => {
-          setSelectedFeedId(null);
-          setSidebarView(v as SidebarView);
-        }}
-        totalUnread={totalUnread}
-      />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - always visible on desktop, slide-over on mobile */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-in-out md:relative md:translate-x-0
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <Sidebar
+          folders={[]}
+          unfiledFeeds={unfiledFeeds}
+          selectedFeedId={selectedFeedId}
+          selectedView={sidebarView === "starred" ? "starred" : "all"}
+          onSelectFeed={(id) => {
+            setSelectedFeedId(id);
+            setSidebarView("unread");
+            setSidebarOpen(false);
+          }}
+          onSelectView={(v) => {
+            setSelectedFeedId(null);
+            setSidebarView(v as SidebarView);
+            setSidebarOpen(false);
+          }}
+          totalUnread={totalUnread}
+        />
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Toolbar */}
         <div className="h-12 border-b flex items-center px-4 gap-3 flex-shrink-0">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden text-sm px-1.5 py-1 rounded hover:bg-accent"
+            aria-label="Open sidebar"
+          >
+            ☰
+          </button>
           <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} />
           <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
           <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
