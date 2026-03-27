@@ -8,11 +8,14 @@ Built for people who read a lot and need a better system for it.
 
 ## What it does
 
-- **Unified inbox** - RSS, Atom, JSON feeds all in one place. Newsletter email ingestion coming soon.
-- **Fast triage** - Keyboard-driven three-action flow: skip, read now, or queue for later. Process hundreds of items in minutes.
-- **Reading queue** - Queue articles for focused reading later. Pin the important ones to the top.
+- **Inbox** - All untriaged items across all feeds in one place. Round-robin interleaved so no single feed dominates.
+- **Fast triage** - Three-action flow: skip (archive), read now, or queue for later. Optimistic updates make every action feel instant.
+- **Reading queue** - Queue articles for focused reading later. Pin the important ones to the top. Separate count badge so you always know what's waiting.
+- **Reading mode** - Clean, focused article view. Skip/queue/star from reading mode advances to the next article automatically.
 - **Signal capture** - Tracks engagement across five tiers (unseen through acted-on) to understand your reading patterns.
-- **Round-robin sorting** - Unread view interleaves items across feeds so no single high-volume source buries everything else.
+- **Mobile-first** - Responsive design with collapsible sidebar, iOS safe area support, touch-friendly triage bar.
+- **Instant loads** - localStorage cache hydrates the UI immediately on repeat visits. Slim API responses (content fetched on demand).
+- **Undo everything** - Press `z` to instantly undo any triage action. Snapshot-based restore, no server round-trip.
 
 ## Quick start
 
@@ -26,7 +29,7 @@ cd client && bun install && cd ..
 # Run database migrations
 bunx drizzle-kit migrate
 
-# Seed with starter feeds (optional)
+# Seed with starter feeds (optional - 13 curated feeds across 4 categories)
 bun run server/src/scripts/seed-feeds.ts
 
 # Build the client
@@ -38,17 +41,31 @@ bun run server/src/index.ts
 
 Open http://localhost:3100.
 
+For development with hot reload:
+```bash
+bun run dev:server   # API server with watch mode
+bun run dev:client   # Vite dev server with HMR
+```
+
+## Concepts
+
+- **Inbox** - Untriaged items. Anything you haven't acted on yet. Interleaved across feeds.
+- **Skip** - Archive. You've seen it, you don't want it. Gone from inbox, findable in "All."
+- **Queue** - Saved for later. Has its own view and count badge. Read when you're ready.
+- **Pin** - Pinned items stick to the top of your queue.
+- **Star** - Favorites. Persists across all views.
+
 ## Keyboard shortcuts
 
 | Key | Action |
 |-----|--------|
-| `j` / `k` | Next / previous item |
-| `s` | Skip (mark read) |
+| `j` / `k` / `↑` / `↓` | Next / previous item |
+| `s` | Skip (archive) |
 | `Enter` | Read now (open article) |
 | `q` | Queue for later |
 | `p` | Pin to top of queue |
 | `f` | Star / favorite |
-| `z` | Undo last action |
+| `z` | Undo last action (instant) |
 | `Shift+A` | Mark all read |
 | `v` | Open original in browser |
 | `r` | Refresh all feeds |
@@ -56,13 +73,23 @@ Open http://localhost:3100.
 | `?` | Show shortcuts |
 | `Esc` | Back to list |
 
+## URL state
+
+The URL hash preserves your position across refreshes:
+- `#unread` - Inbox view
+- `#queue` - Reading queue
+- `#starred` - Starred items
+- `#read/42` - Reading article ID 42
+- `#unread/5` - Inbox filtered to feed ID 5
+
 ## Stack
 
 - **Backend:** Bun + Hono
-- **Frontend:** React 19 + Vite + Tailwind CSS + shadcn/ui
+- **Frontend:** React 19 + Vite + Tailwind CSS 4 + shadcn/ui
 - **Database:** SQLite + Drizzle ORM (via bun:sqlite)
 - **Feed parsing:** Feedsmith (RSS, Atom, RDF, JSON Feed)
 - **Virtualization:** @tanstack/react-virtual
+- **Typography:** @tailwindcss/typography for article rendering
 
 ## Project structure
 
@@ -75,8 +102,12 @@ server/
     scripts/      # Seed scripts
 client/
   src/
-    components/   # React components (article list, reading pane, triage bar, sidebar)
-    hooks/        # Keyboard navigation hook
+    components/
+      article/    # ArticleList (virtual scroll), ReadingPane
+      layout/     # Sidebar with feed list
+      triage/     # TriageBar, ShortcutsHelp
+      ui/         # shadcn/ui primitives
+    hooks/        # Keyboard navigation
     lib/          # API client, utilities
 shared/
   types/          # TypeScript types shared between server and client
@@ -92,21 +123,22 @@ data/             # SQLite database (gitignored)
 All endpoints under `/api/`:
 
 **Feeds**
-- `GET /feeds` - List feeds with unread counts
-- `POST /feeds` - Subscribe to a new feed (auto-fetches)
+- `GET /feeds` - List feeds with unread and queue counts
+- `POST /feeds` - Subscribe to a new feed (auto-fetches immediately)
 - `POST /feeds/import/opml` - Import OPML file
 - `POST /feeds/poll` - Trigger refresh of all due feeds
 - `POST /feeds/:id/refresh` - Refresh a single feed
-- `DELETE /feeds/:id` - Unsubscribe
+- `DELETE /feeds/:id` - Unsubscribe (cascades to items)
 
 **Items**
-- `GET /items` - List items (params: feedId, starred, unread, queued, limit, offset)
+- `GET /items` - List items (params: feedId, starred, unread, queued, includeContent, limit, offset)
+- `GET /items/:id` - Get single item with full content (for reading mode)
 - `GET /items/queue` - Reading queue (pinned first)
 - `PATCH /items/:id/triage` - Triage action (skip, read_now, queue, pin)
-- `PATCH /items/:id/undo` - Undo last triage action
+- `PATCH /items/:id/undo` - Undo triage (reset to unseen)
 - `PATCH /items/:id/read` - Mark read/unread
 - `PATCH /items/:id/star` - Star/unstar
-- `PATCH /items/:id/signal` - Record scroll depth, dwell time
+- `PATCH /items/:id/signal` - Record scroll depth, dwell time, completion
 - `POST /items/mark-all-read` - Mark all read (optional feedId filter)
 
 ## Design
@@ -120,7 +152,13 @@ See [docs/design.md](docs/design.md) for the full design document covering:
 
 ## Status
 
-Phase 1 in progress. Core reading loop works - RSS ingestion, triage UI, reading queue, optimistic updates. See [.claude/plans/2026-03-27-phase1-build.md](.claude/plans/2026-03-27-phase1-build.md) for detailed progress.
+**Phase 1: 18 of 24 milestones complete.**
+
+Working today: RSS ingestion (13 feeds), inbox triage with keyboard shortcuts, reading mode, mobile-responsive UI, optimistic updates, localStorage caching, undo, round-robin sort, feed filtering.
+
+Remaining: OPML import UI, full-text search (FTS5), newsletter email ingestion, reading queue polish, PWA, Docker container.
+
+See [.claude/plans/2026-03-27-phase1-build.md](.claude/plans/2026-03-27-phase1-build.md) for detailed progress.
 
 ## License
 
