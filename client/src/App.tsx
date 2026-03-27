@@ -38,22 +38,23 @@ function saveCache(key: string, data: any) {
   } catch { /* quota exceeded, ignore */ }
 }
 
-const cache = loadCache();
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
       refetchOnWindowFocus: true,
-      placeholderData: (prev: any, query: any) => {
-        if (prev) return prev;
-        const key = JSON.stringify(query.queryKey);
-        return cache[key];
-      },
     },
-    mutations: {},
   },
 });
+
+// Hydrate from localStorage cache on startup
+const cached = loadCache();
+for (const [keyStr, data] of Object.entries(cached)) {
+  try {
+    const queryKey = JSON.parse(keyStr);
+    queryClient.setQueryData(queryKey, data);
+  } catch { /* bad key, skip */ }
+}
 
 // Persist query results to localStorage
 queryClient.getQueryCache().subscribe((event) => {
