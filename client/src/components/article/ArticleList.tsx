@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 import type { FeedItemWithState } from "../../../../shared/types";
@@ -21,9 +21,22 @@ export function ArticleList({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => (viewMode === "expanded" ? 300 : 48),
-    overscan: 5,
+    estimateSize: () => (viewMode === "expanded" ? 120 : 44),
+    overscan: 10,
   });
+
+  // Auto-scroll to keep selected item visible
+  useEffect(() => {
+    virtualizer.scrollToIndex(selectedIndex, { align: "auto" });
+  }, [selectedIndex, virtualizer]);
+
+  if (items.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+        No items to show. Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs mx-1">r</kbd> to refresh feeds.
+      </div>
+    );
+  }
 
   return (
     <div ref={parentRef} className="flex-1 overflow-auto">
@@ -39,12 +52,13 @@ export function ArticleList({
           return (
             <div
               key={virtualItem.key}
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
               style={{
                 position: "absolute",
                 top: 0,
                 left: 0,
                 width: "100%",
-                height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
@@ -83,13 +97,11 @@ function HeadlineRow({
       onClick={onClick}
       className={cn(
         "w-full text-left px-4 py-2.5 flex items-center gap-3 border-b border-border hover:bg-accent/50 transition-colors",
-        isSelected && "bg-accent",
-        item.isRead && "opacity-60"
+        isSelected && "bg-accent ring-1 ring-primary/20",
+        item.isRead && "opacity-50"
       )}
     >
-      {item.isStarred && (
-        <span className="text-yellow-500 flex-shrink-0">★</span>
-      )}
+      <TriageIndicator item={item} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
           <span
@@ -106,9 +118,7 @@ function HeadlineRow({
         </div>
       </div>
       <time className="text-xs text-muted-foreground flex-shrink-0">
-        {item.publishedAt
-          ? new Date(item.publishedAt).toLocaleDateString()
-          : ""}
+        {item.publishedAt ? formatRelativeDate(item.publishedAt) : ""}
       </time>
     </button>
   );
@@ -128,16 +138,17 @@ function ExpandedArticle({
       onClick={onClick}
       className={cn(
         "px-6 py-4 border-b border-border cursor-pointer hover:bg-accent/30 transition-colors",
-        isSelected && "bg-accent/50",
-        item.isRead && "opacity-70"
+        isSelected && "bg-accent/50 ring-1 ring-primary/20",
+        item.isRead && "opacity-50"
       )}
     >
-      <header className="mb-2">
+      <header className="mb-1.5">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+          <TriageIndicator item={item} />
           {item.feedIconUrl && (
             <img src={item.feedIconUrl} alt="" className="w-4 h-4 rounded-sm" />
           )}
-          <span>{item.feedTitle}</span>
+          <span className="font-medium">{item.feedTitle}</span>
           {item.author && (
             <>
               <span>/</span>
@@ -147,10 +158,15 @@ function ExpandedArticle({
           {item.publishedAt && (
             <>
               <span>·</span>
-              <time>{new Date(item.publishedAt).toLocaleDateString()}</time>
+              <time>{formatRelativeDate(item.publishedAt)}</time>
             </>
           )}
-          {item.isStarred && <span className="text-yellow-500">★</span>}
+          {item.wordCount && (
+            <>
+              <span>·</span>
+              <span>{Math.ceil(item.wordCount / 250)} min</span>
+            </>
+          )}
         </div>
         <h2
           className={cn(
@@ -162,10 +178,36 @@ function ExpandedArticle({
         </h2>
       </header>
       {item.summary && (
-        <p className="text-sm text-muted-foreground line-clamp-3">
-          {item.summary}
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {stripHtml(item.summary)}
         </p>
       )}
     </article>
   );
+}
+
+function TriageIndicator({ item }: { item: FeedItemWithState }) {
+  if (item.isStarred) return <span className="text-yellow-500 text-xs flex-shrink-0">★</span>;
+  if (item.isPinned) return <span className="text-blue-500 text-xs flex-shrink-0">📌</span>;
+  if (item.triageAction === "queue") return <span className="text-green-500 text-xs flex-shrink-0">◆</span>;
+  if (!item.isRead) return <span className="text-primary text-xs flex-shrink-0">●</span>;
+  return <span className="text-xs flex-shrink-0 opacity-0">●</span>;
+}
+
+function formatRelativeDate(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffH = diffMs / (1000 * 60 * 60);
+
+  if (diffH < 0) return "Just now";
+  if (diffH < 1) return `${Math.max(1, Math.round(diffMs / (1000 * 60)))}m`;
+  if (diffH < 24) return `${Math.round(diffH)}h`;
+  if (diffH < 48) return "1d";
+  if (diffH < 168) return `${Math.round(diffH / 24)}d`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").replace(/&[^;]+;/g, " ").trim();
 }

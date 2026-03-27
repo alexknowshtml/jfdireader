@@ -12,7 +12,7 @@ app.use("*", logger());
 app.use(
   "/api/*",
   cors({
-    origin: "http://localhost:5173", // Vite dev server
+    origin: ["http://localhost:5173", "http://localhost:5174"], // Vite dev server
   })
 );
 
@@ -27,7 +27,7 @@ app.route("/api/folders", foldersRouter);
 // Start background feed polling (every 5 minutes)
 startPolling(5 * 60 * 1000);
 
-const port = parseInt(process.env.PORT || "3000");
+const port = parseInt(process.env.PORT || "3100");
 console.log(`JFDI Reader server running on http://localhost:${port}`);
 
 export default {

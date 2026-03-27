@@ -19,9 +19,9 @@ interface SidebarProps {
   folders: SidebarFolder[];
   unfiledFeeds: SidebarFeed[];
   selectedFeedId: number | null;
-  selectedView: "all" | "starred";
+  selectedView: string;
   onSelectFeed: (feedId: number | null) => void;
-  onSelectView: (view: "all" | "starred") => void;
+  onSelectView: (view: string) => void;
   totalUnread: number;
 }
 
@@ -35,13 +35,34 @@ export function Sidebar({
   totalUnread,
 }: SidebarProps) {
   return (
-    <div className="w-64 border-r bg-sidebar flex flex-col h-full">
+    <div className="w-64 border-r bg-sidebar flex flex-col h-full flex-shrink-0">
       <div className="p-4 font-semibold text-lg tracking-tight">
         JFDI Reader
       </div>
       <Separator />
       <ScrollArea className="flex-1">
         <div className="p-2">
+          {/* All unread */}
+          <button
+            onClick={() => {
+              onSelectFeed(null);
+              onSelectView("unread");
+            }}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-md text-sm flex justify-between items-center hover:bg-accent",
+              selectedFeedId === null &&
+                selectedView === "unread" &&
+                "bg-accent font-medium"
+            )}
+          >
+            <span>Unread</span>
+            {totalUnread > 0 && (
+              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                {totalUnread}
+              </span>
+            )}
+          </button>
+
           {/* All items */}
           <button
             onClick={() => {
@@ -49,18 +70,13 @@ export function Sidebar({
               onSelectView("all");
             }}
             className={cn(
-              "w-full text-left px-3 py-2 rounded-md text-sm flex justify-between items-center hover:bg-accent",
+              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
               selectedFeedId === null &&
                 selectedView === "all" &&
                 "bg-accent font-medium"
             )}
           >
-            <span>All items</span>
-            {totalUnread > 0 && (
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                {totalUnread}
-              </span>
-            )}
+            All items
           </button>
 
           {/* Starred */}
@@ -74,7 +90,21 @@ export function Sidebar({
               selectedView === "starred" && "bg-accent font-medium"
             )}
           >
-            Starred
+            ★ Starred
+          </button>
+
+          {/* Queue */}
+          <button
+            onClick={() => {
+              onSelectFeed(null);
+              onSelectView("queue");
+            }}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
+              selectedView === "queue" && "bg-accent font-medium"
+            )}
+          >
+            ◆ Reading Queue
           </button>
 
           <Separator className="my-2" />
@@ -92,7 +122,7 @@ export function Sidebar({
                   isSelected={selectedFeedId === feed.id}
                   onSelect={() => {
                     onSelectFeed(feed.id);
-                    onSelectView("all");
+                    onSelectView("unread");
                   }}
                 />
               ))}
@@ -110,7 +140,7 @@ export function Sidebar({
                   isSelected={selectedFeedId === feed.id}
                   onSelect={() => {
                     onSelectFeed(feed.id);
-                    onSelectView("all");
+                    onSelectView("unread");
                   }}
                 />
               ))}
@@ -147,7 +177,7 @@ function FeedItem({
             className="w-4 h-4 rounded-sm"
           />
         ) : (
-          <div className="w-4 h-4 rounded-sm bg-muted" />
+          <div className="w-4 h-4 rounded-sm bg-muted flex-shrink-0" />
         )}
         <span className="truncate">{feed.title || "Untitled"}</span>
       </span>

@@ -1,7 +1,10 @@
-import { useState, useCallback } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useCallback, useEffect } from "react";
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { ArticleList } from "@/components/article/ArticleList";
+import { ReadingPane } from "@/components/article/ReadingPane";
+import { TriageBar } from "@/components/triage/TriageBar";
+import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import {
   CommandDialog,
@@ -10,46 +13,103 @@ import {
   CommandEmpty,
   CommandItem,
 } from "@/components/ui/command";
+import * as api from "@/lib/api";
 import type { FeedItemWithState } from "../../shared/types";
 
-const queryClient = new QueryClient();
-
-// Demo data for initial UI
-const DEMO_ITEMS: FeedItemWithState[] = [
-  {
-    id: 1,
-    feedId: 1,
-    guid: "1",
-    url: "https://example.com/welcome",
-    title: "Welcome to JFDI Reader",
-    author: "JFDI Reader",
-    content: "<p>Your modern RSS reader is ready. Add feeds to get started.</p>",
-    summary:
-      "Your modern RSS reader is ready. Subscribe to your first feed to start reading.",
-    publishedAt: new Date().toISOString(),
-    fetchedAt: new Date().toISOString(),
-    thumbnailUrl: null,
-    wordCount: 15,
-    engagementTier: "unseen",
-    triageAction: null,
-    isRead: false,
-    isStarred: false,
-    isPinned: false,
-    queuedAt: null,
-    feedTitle: "Getting Started",
-    feedIconUrl: null,
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000, refetchOnWindowFocus: true },
   },
-];
+});
+
+type ViewMode = "triage" | "reading";
+type SidebarView = "all" | "unread" | "starred" | "queue";
 
 function ReaderApp() {
+  const qc = useQueryClient();
   const [selectedFeedId, setSelectedFeedId] = useState<number | null>(null);
-  const [selectedView, setSelectedView] = useState<"all" | "starred">("all");
+  const [sidebarView, setSidebarView] = useState<SidebarView>("unread");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<"expanded" | "headlines">(
-    "expanded"
-  );
+  const [viewMode, setViewMode] = useState<ViewMode>("triage");
   const [searchOpen, setSearchOpen] = useState(false);
-  const items = DEMO_ITEMS;
+  const [helpOpen, setHelpOpen] = useState(false);
+  // Fetch feeds for sidebar
+  const { data: feeds = [] } = useQuery({
+    queryKey: ["feeds"],
+    queryFn: api.getFeeds,
+  });
+
+  // Fetch items based on current view
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["items", selectedFeedId, sidebarView],
+    queryFn: () =>
+      sidebarView === "queue"
+        ? api.getQueue()
+        : api.getItems({
+            feedId: selectedFeedId,
+            starred: sidebarView === "starred" || undefined,
+            unread: sidebarView === "unread" || undefined,
+            limit: 200,
+          }),
+  });
+
+  const currentItem: FeedItemWithState | undefined = items[selectedIndex];
+
+  // Reset selection when view changes
+  useEffect(() => {
+    setSelectedIndex(0);
+    setViewMode("triage");
+  }, [selectedFeedId, sidebarView]);
+
+  // Invalidate and advance after triage action
+  const afterTriage = useCallback(() => {
+    qc.invalidateQueries({ queryKey: ["items"] });
+    qc.invalidateQueries({ queryKey: ["feeds"] });
+    // Don't advance index - the item will disappear from the unread list
+    // and the next item will slide into this position
+  }, [qc]);
+
+  const handleSkip = useCallback(async () => {
+    if (!currentItem) return;
+    await api.triageItem(currentItem.id, "skip");
+    afterTriage();
+  }, [currentItem, afterTriage]);
+
+  const handleReadNow = useCallback(() => {
+    if (!currentItem) return;
+    setViewMode("reading");
+    api.triageItem(currentItem.id, "read_now");
+    api.markRead(currentItem.id, true);
+  }, [currentItem]);
+
+  const handleQueue = useCallback(async () => {
+    if (!currentItem) return;
+    await api.triageItem(currentItem.id, "queue");
+    afterTriage();
+  }, [currentItem, afterTriage]);
+
+  const handlePin = useCallback(async () => {
+    if (!currentItem) return;
+    await api.triageItem(currentItem.id, "pin");
+    afterTriage();
+  }, [currentItem, afterTriage]);
+
+  const handleStar = useCallback(async () => {
+    if (!currentItem) return;
+    await api.starItem(currentItem.id, !currentItem.isStarred);
+    qc.invalidateQueries({ queryKey: ["items"] });
+  }, [currentItem, qc]);
+
+  const handleMarkAllRead = useCallback(async () => {
+    await api.markAllRead(selectedFeedId ?? undefined);
+    afterTriage();
+  }, [selectedFeedId, afterTriage]);
+
+  const handleRefresh = useCallback(async () => {
+    await api.pollAllFeeds();
+    qc.invalidateQueries({ queryKey: ["items"] });
+    qc.invalidateQueries({ queryKey: ["feeds"] });
+  }, [qc]);
 
   const next = useCallback(() => {
     setSelectedIndex((i) => Math.min(i + 1, items.length - 1));
@@ -62,70 +122,102 @@ function ReaderApp() {
   useKeyboardNav({
     onNext: next,
     onPrev: prev,
-    onOpen: () =>
-      setViewMode((m) => (m === "expanded" ? "headlines" : "expanded")),
-    onStar: () => {},
-    onMarkRead: () => {},
-    onMarkAllRead: () => {},
+    onOpen: () => {
+      if (viewMode === "reading") {
+        setViewMode("triage");
+      } else {
+        handleReadNow();
+      }
+    },
+    onSkip: handleSkip,
+    onQueue: handleQueue,
+    onPin: handlePin,
+    onStar: handleStar,
+    onMarkAllRead: handleMarkAllRead,
     onSearch: () => setSearchOpen(true),
     onOpenOriginal: () => {
-      const item = items[selectedIndex];
-      if (item?.url) window.open(item.url, "_blank");
+      if (currentItem?.url) window.open(currentItem.url, "_blank");
     },
+    onRefresh: handleRefresh,
+    onHelp: () => setHelpOpen((h) => !h),
+    enabled: !searchOpen && !helpOpen,
   });
 
+  // Build sidebar data
+  const unfiledFeeds: any[] = [];
+  const totalUnread = feeds.reduce((sum, f) => sum + (f.unreadCount || 0), 0);
+
+  // For now, show all feeds as unfiled (folders need a join query)
+  for (const feed of feeds) {
+    unfiledFeeds.push({
+      id: feed.id,
+      title: feed.title,
+      iconUrl: feed.iconUrl,
+      unreadCount: feed.unreadCount || 0,
+    });
+  }
+
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-background text-foreground">
       <Sidebar
         folders={[]}
-        unfiledFeeds={[
-          { id: 1, title: "Getting Started", iconUrl: null, unreadCount: 1 },
-        ]}
+        unfiledFeeds={unfiledFeeds}
         selectedFeedId={selectedFeedId}
-        selectedView={selectedView}
-        onSelectFeed={setSelectedFeedId}
-        onSelectView={setSelectedView}
-        totalUnread={1}
+        selectedView={sidebarView === "starred" ? "starred" : "all"}
+        onSelectFeed={(id) => {
+          setSelectedFeedId(id);
+          setSidebarView("unread");
+        }}
+        onSelectView={(v) => {
+          setSelectedFeedId(null);
+          setSidebarView(v as SidebarView);
+        }}
+        totalUnread={totalUnread}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Toolbar */}
-        <div className="h-12 border-b flex items-center px-4 gap-3">
-          <button
-            onClick={() => setViewMode("expanded")}
-            className={`text-xs px-2 py-1 rounded ${
-              viewMode === "expanded"
-                ? "bg-accent font-medium"
-                : "text-muted-foreground"
-            }`}
-          >
-            Expanded
-          </button>
-          <button
-            onClick={() => setViewMode("headlines")}
-            className={`text-xs px-2 py-1 rounded ${
-              viewMode === "headlines"
-                ? "bg-accent font-medium"
-                : "text-muted-foreground"
-            }`}
-          >
-            Headlines
-          </button>
+        <div className="h-12 border-b flex items-center px-4 gap-3 flex-shrink-0">
+          <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} />
+          <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
+          <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
+          <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} />
           <div className="flex-1" />
+          {isLoading && (
+            <span className="text-xs text-muted-foreground">Loading...</span>
+          )}
           <span className="text-xs text-muted-foreground">
-            Press{" "}
+            {items.length} items
+          </span>
+          <span className="text-xs text-muted-foreground">
             <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">?</kbd>{" "}
-            for shortcuts
+            shortcuts
           </span>
         </div>
 
-        {/* Article list */}
-        <ArticleList
-          items={items}
-          selectedIndex={selectedIndex}
-          onSelect={setSelectedIndex}
-          viewMode={viewMode}
-        />
+        {/* Main content area */}
+        {viewMode === "reading" && currentItem ? (
+          <ReadingPane item={currentItem} onClose={() => setViewMode("triage")} />
+        ) : (
+          <ArticleList
+            items={items}
+            selectedIndex={selectedIndex}
+            onSelect={(i) => setSelectedIndex(i)}
+            viewMode="expanded"
+          />
+        )}
+
+        {/* Triage bar */}
+        {viewMode === "triage" && currentItem && (
+          <TriageBar
+            itemTitle={currentItem.title}
+            isStarred={currentItem.isStarred}
+            onSkip={handleSkip}
+            onQueue={handleQueue}
+            onPin={handlePin}
+            onStar={handleStar}
+          />
+        )}
       </div>
 
       {/* Command palette (search) */}
@@ -134,13 +226,40 @@ function ReaderApp() {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           {items.map((item) => (
-            <CommandItem key={item.id} value={item.title || ""}>
+            <CommandItem
+              key={item.id}
+              value={item.title || ""}
+              onSelect={() => {
+                const idx = items.findIndex((i) => i.id === item.id);
+                if (idx >= 0) setSelectedIndex(idx);
+                setSearchOpen(false);
+              }}
+            >
+              <span className="text-xs text-muted-foreground mr-2">
+                {item.feedTitle}
+              </span>
               {item.title}
             </CommandItem>
           ))}
         </CommandList>
       </CommandDialog>
+
+      {/* Shortcuts help */}
+      <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
+  );
+}
+
+function ViewButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`text-xs px-2 py-1 rounded ${
+        active ? "bg-accent font-medium" : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
