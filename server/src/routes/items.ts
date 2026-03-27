@@ -54,6 +54,11 @@ itemsRouter.get("/", async (c) => {
     query = query.where(
       sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)`
     );
+    // For unread+interleaved, fetch more items so every feed gets representation
+    // The interleave function will trim back to a reasonable page size
+    if (!feedId) {
+      query = query.limit(1000);
+    }
   }
   if (queued === "true") {
     query = query.where(sql`${schema.itemState.triageAction} IN ('queue', 'pin')`);
@@ -65,6 +70,13 @@ itemsRouter.get("/", async (c) => {
   }
 
   const result = await query;
+
+  // Interleave unread items round-robin across feeds
+  // so no single feed dominates the list
+  if (unread === "true" && !feedId && queued !== "true") {
+    return c.json(interleaveByFeed(result));
+  }
+
   return c.json(result);
 });
 
@@ -274,3 +286,42 @@ itemsRouter.get("/queue", async (c) => {
 
   return c.json(result);
 });
+
+/**
+ * Interleave items round-robin across feeds.
+ * Groups items by feed (preserving per-feed sort order),
+ * then deals them out one-at-a-time like a card dealer.
+ */
+function interleaveByFeed(items: any[]): any[] {
+  const feedBuckets = new Map<number, any[]>();
+  for (const item of items) {
+    const bucket = feedBuckets.get(item.feedId) || [];
+    bucket.push(item);
+    feedBuckets.set(item.feedId, bucket);
+  }
+
+  // Sort feeds by their newest item so feeds with recent content appear first
+  const sortedBuckets = [...feedBuckets.values()].sort((a, b) => {
+    const aDate = a[0]?.publishedAt || "";
+    const bDate = b[0]?.publishedAt || "";
+    return bDate > aDate ? 1 : bDate < aDate ? -1 : 0;
+  });
+
+  // Round-robin deal
+  const result: any[] = [];
+  let round = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    hasMore = false;
+    for (const bucket of sortedBuckets) {
+      if (round < bucket.length) {
+        result.push(bucket[round]);
+        hasMore = true;
+      }
+    }
+    round++;
+  }
+
+  return result;
+}
