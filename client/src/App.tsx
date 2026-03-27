@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { ArticleList } from "@/components/article/ArticleList";
@@ -33,6 +33,8 @@ function ReaderApp() {
   const [viewMode, setViewMode] = useState<ViewMode>("triage");
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const lastAction = useRef<{ itemId: number; action: string } | null>(null);
+
   // Fetch feeds for sidebar
   const { data: feeds = [] } = useQuery({
     queryKey: ["feeds"],
@@ -71,12 +73,14 @@ function ReaderApp() {
 
   const handleSkip = useCallback(async () => {
     if (!currentItem) return;
+    lastAction.current = { itemId: currentItem.id, action: "skip" };
     await api.triageItem(currentItem.id, "skip");
     afterTriage();
   }, [currentItem, afterTriage]);
 
   const handleReadNow = useCallback(() => {
     if (!currentItem) return;
+    lastAction.current = { itemId: currentItem.id, action: "read_now" };
     setViewMode("reading");
     api.triageItem(currentItem.id, "read_now");
     api.markRead(currentItem.id, true);
@@ -84,15 +88,24 @@ function ReaderApp() {
 
   const handleQueue = useCallback(async () => {
     if (!currentItem) return;
+    lastAction.current = { itemId: currentItem.id, action: "queue" };
     await api.triageItem(currentItem.id, "queue");
     afterTriage();
   }, [currentItem, afterTriage]);
 
   const handlePin = useCallback(async () => {
     if (!currentItem) return;
+    lastAction.current = { itemId: currentItem.id, action: "pin" };
     await api.triageItem(currentItem.id, "pin");
     afterTriage();
   }, [currentItem, afterTriage]);
+
+  const handleUndo = useCallback(async () => {
+    if (!lastAction.current) return;
+    await api.undoTriage(lastAction.current.itemId);
+    lastAction.current = null;
+    afterTriage();
+  }, [afterTriage]);
 
   const handleStar = useCallback(async () => {
     if (!currentItem) return;
@@ -139,6 +152,7 @@ function ReaderApp() {
       if (currentItem?.url) window.open(currentItem.url, "_blank");
     },
     onRefresh: handleRefresh,
+    onUndo: handleUndo,
     onHelp: () => setHelpOpen((h) => !h),
     enabled: !searchOpen && !helpOpen,
   });

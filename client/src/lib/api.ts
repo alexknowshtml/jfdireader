@@ -55,6 +55,10 @@ export async function triageItem(id: number, action: "skip" | "read_now" | "queu
   });
 }
 
+export async function undoTriage(id: number) {
+  return fetchJSON(`/items/${id}/undo`, { method: "PATCH" });
+}
+
 export async function markRead(id: number, isRead: boolean) {
   return fetchJSON(`/items/${id}/read`, {
     method: "PATCH",

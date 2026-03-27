@@ -12,6 +12,7 @@ interface KeyboardNavOptions {
   onSearch: () => void;        // / - open search
   onOpenOriginal: () => void;  // v - open in browser
   onRefresh: () => void;       // r - refresh feeds
+  onUndo: () => void;          // z - undo last triage action
   onHelp: () => void;          // ? - show shortcuts
   enabled?: boolean;
 }
@@ -77,6 +78,10 @@ export function useKeyboardNav(options: KeyboardNavOptions) {
         case "r":
           e.preventDefault();
           options.onRefresh();
+          break;
+        case "z":
+          e.preventDefault();
+          options.onUndo();
           break;
         case "?":
           e.preventDefault();

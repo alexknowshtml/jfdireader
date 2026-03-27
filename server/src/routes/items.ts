@@ -109,6 +109,42 @@ itemsRouter.patch("/:id/triage", async (c) => {
   return c.json({ ok: true });
 });
 
+// Undo triage - reset item to unseen/unread state
+itemsRouter.patch("/:id/undo", async (c) => {
+  const id = parseInt(c.req.param("id"));
+
+  await db
+    .insert(schema.itemState)
+    .values({
+      itemId: id,
+      engagementTier: "unseen",
+      triageAction: null,
+      triageAt: null,
+      isRead: false,
+      readAt: null,
+      queuedAt: null,
+      isPinned: false,
+      pinnedAt: null,
+      queuePosition: null,
+    })
+    .onConflictDoUpdate({
+      target: schema.itemState.itemId,
+      set: {
+        engagementTier: "unseen",
+        triageAction: null,
+        triageAt: null,
+        isRead: false,
+        readAt: null,
+        queuedAt: null,
+        isPinned: false,
+        pinnedAt: null,
+        queuePosition: null,
+      },
+    });
+
+  return c.json({ ok: true });
+});
+
 // Record implicit signals (scroll depth, dwell time)
 itemsRouter.patch("/:id/signal", async (c) => {
   const id = parseInt(c.req.param("id"));

@@ -18,6 +18,7 @@ const SHORTCUTS = [
   ]},
   { section: "Actions", keys: [
     { key: "f", action: "Star / favorite" },
+    { key: "z", action: "Undo last triage action" },
     { key: "v", action: "Open original in browser" },
     { key: "r", action: "Refresh feeds" },
     { key: "/", action: "Search" },
