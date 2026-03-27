@@ -346,7 +346,6 @@ function ReaderApp() {
               <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
             </div>
             <div className="flex-1" />
-            <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
             {isLoading && (
               <span className="text-xs text-muted-foreground">Loading</span>
             )}

@@ -13,6 +13,8 @@ itemsRouter.get("/", async (c) => {
   const limit = parseInt(c.req.query("limit") || "50");
   const offset = parseInt(c.req.query("offset") || "0");
 
+  const includeContent = c.req.query("includeContent") === "true";
+
   let query = db
     .select({
       id: schema.items.id,
@@ -21,7 +23,8 @@ itemsRouter.get("/", async (c) => {
       url: schema.items.url,
       title: schema.items.title,
       author: schema.items.author,
-      content: schema.items.content,
+      // Only include full content when explicitly requested (reading mode)
+      ...(includeContent ? { content: schema.items.content } : {}),
       summary: schema.items.summary,
       publishedAt: schema.items.publishedAt,
       fetchedAt: schema.items.fetchedAt,
@@ -79,6 +82,22 @@ itemsRouter.get("/", async (c) => {
   }
 
   return c.json(result);
+});
+
+// Get a single item with full content (for reading mode)
+itemsRouter.get("/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const [item] = await db
+    .select({
+      id: schema.items.id,
+      content: schema.items.content,
+      summary: schema.items.summary,
+    })
+    .from(schema.items)
+    .where(eq(schema.items.id, id));
+
+  if (!item) return c.json({ error: "Not found" }, 404);
+  return c.json(item);
 });
 
 // Triage an item (skip / read_now / queue / pin)

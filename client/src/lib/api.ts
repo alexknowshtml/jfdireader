@@ -47,6 +47,11 @@ export async function getQueue(): Promise<FeedItemWithState[]> {
   return fetchJSON("/items/queue");
 }
 
+// Get item content (for reading mode - fetched on demand)
+export async function getItemContent(id: number): Promise<{ content: string | null; summary: string | null }> {
+  return fetchJSON(`/items/${id}`);
+}
+
 // Triage actions
 export async function triageItem(id: number, action: "skip" | "read_now" | "queue" | "pin") {
   return fetchJSON(`/items/${id}/triage`, {

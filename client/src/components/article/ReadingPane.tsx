@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { getItemContent } from "@/lib/api";
 import type { FeedItemWithState } from "../../../../shared/types";
 
 interface ReadingPaneProps {
@@ -6,6 +8,18 @@ interface ReadingPaneProps {
 }
 
 export function ReadingPane({ item }: ReadingPaneProps) {
+  const [content, setContent] = useState<string | null>(item.content || null);
+
+  // Fetch full content on demand if not already loaded
+  useEffect(() => {
+    if (!item.content) {
+      getItemContent(item.id).then((data) => {
+        setContent(data.content || data.summary || null);
+      });
+    } else {
+      setContent(item.content);
+    }
+  }, [item.id, item.content]);
   return (
     <div className="flex-1 overflow-auto bg-background">
       <div className="max-w-2xl mx-auto py-8 px-6">
@@ -59,7 +73,7 @@ export function ReadingPane({ item }: ReadingPaneProps) {
             [&_p:empty]:hidden [&_p_br:only-child]:hidden
             [&_br+br]:hidden"
           dangerouslySetInnerHTML={{
-            __html: cleanContent(item.content || item.summary || "<p>No content available.</p>"),
+            __html: cleanContent(content || item.summary || "<p>Loading...</p>"),
           }}
         />
 
