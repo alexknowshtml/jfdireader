@@ -156,6 +156,26 @@ feedsRouter.get("/:id", async (c) => {
   return c.json(feed);
 });
 
+// Update feed settings
+feedsRouter.patch("/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const body = await c.req.json<{
+    title?: string;
+    pollIntervalMinutes?: number;
+  }>();
+
+  const set: Record<string, any> = {};
+  if (body.title !== undefined) set.title = body.title;
+  if (body.pollIntervalMinutes !== undefined) set.pollIntervalMinutes = body.pollIntervalMinutes;
+
+  if (Object.keys(set).length > 0) {
+    await db.update(schema.feeds).set(set).where(eq(schema.feeds.id, id));
+  }
+
+  const [feed] = await db.select().from(schema.feeds).where(eq(schema.feeds.id, id));
+  return c.json(feed);
+});
+
 // Delete a feed (unsubscribe)
 feedsRouter.delete("/:id", async (c) => {
   const id = parseInt(c.req.param("id"));

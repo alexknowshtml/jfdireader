@@ -22,6 +22,7 @@ interface SidebarProps {
   selectedView: string;
   onSelectFeed: (feedId: number | null) => void;
   onSelectView: (view: string) => void;
+  onFeedSettings: (feedId: number) => void;
   totalUnread: number;
   totalQueued: number;
 }
@@ -35,6 +36,7 @@ export function Sidebar({
   onSelectView,
   totalUnread,
   totalQueued,
+  onFeedSettings,
 }: SidebarProps) {
   return (
     <div className="w-64 border-r bg-sidebar flex flex-col h-full flex-shrink-0">
@@ -131,6 +133,7 @@ export function Sidebar({
                     onSelectFeed(feed.id);
                     onSelectView("unread");
                   }}
+                  onSettings={() => onFeedSettings(feed.id)}
                 />
               ))}
             </div>
@@ -149,6 +152,7 @@ export function Sidebar({
                     onSelectFeed(feed.id);
                     onSelectView("unread");
                   }}
+                  onSettings={() => onFeedSettings(feed.id)}
                 />
               ))}
             </>
@@ -163,18 +167,20 @@ function FeedItem({
   feed,
   isSelected,
   onSelect,
+  onSettings,
 }: {
   feed: SidebarFeed;
   isSelected: boolean;
   onSelect: () => void;
+  onSettings: () => void;
 }) {
   return (
-    <button
-      onClick={onSelect}
+    <div
       className={cn(
-        "w-full text-left px-3 py-1.5 rounded-md text-sm flex justify-between items-center hover:bg-accent",
+        "group w-full text-left px-3 py-1.5 rounded-md text-sm flex justify-between items-center hover:bg-accent cursor-pointer",
         isSelected && "bg-accent font-medium"
       )}
+      onClick={onSelect}
     >
       <span className="flex items-center gap-2 truncate">
         {feed.iconUrl ? (
@@ -188,11 +194,20 @@ function FeedItem({
         )}
         <span className="truncate">{feed.title || "Untitled"}</span>
       </span>
-      {feed.unreadCount > 0 && (
-        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full ml-2 flex-shrink-0">
-          {feed.unreadCount}
-        </span>
-      )}
-    </button>
+      <span className="flex items-center gap-1">
+        <button
+          onClick={(e) => { e.stopPropagation(); onSettings(); }}
+          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground px-1 text-xs"
+          title="Feed settings"
+        >
+          ⚙
+        </button>
+        {feed.unreadCount > 0 && (
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full flex-shrink-0">
+            {feed.unreadCount}
+          </span>
+        )}
+      </span>
+    </div>
   );
 }

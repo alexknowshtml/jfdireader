@@ -47,15 +47,18 @@ itemsRouter.get("/", async (c) => {
     .offset(offset)
     .$dynamic();
 
+  // Build conditions array - combined into single WHERE with AND
+  const conditions: any[] = [];
+
   if (feedId) {
-    query = query.where(eq(schema.items.feedId, parseInt(feedId)));
+    conditions.push(eq(schema.items.feedId, parseInt(feedId)));
   }
   if (starred === "true") {
-    query = query.where(eq(schema.itemState.isStarred, true));
+    conditions.push(eq(schema.itemState.isStarred, true));
   }
   if (unread === "true") {
     // Inbox = untriaged items only (not read, not queued, not skipped)
-    query = query.where(
+    conditions.push(
       sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)
         AND (${schema.itemState.triageAction} IS NULL)`
     );
@@ -65,12 +68,15 @@ itemsRouter.get("/", async (c) => {
     }
   }
   if (queued === "true") {
-    query = query.where(sql`${schema.itemState.triageAction} IN ('queue', 'pin')`);
-    // Pinned items first, then by queue position
+    conditions.push(sql`${schema.itemState.triageAction} IN ('queue', 'pin')`);
     query = query.orderBy(
       desc(schema.itemState.isPinned),
       schema.itemState.queuePosition
     );
+  }
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
   }
 
   const result = await query;

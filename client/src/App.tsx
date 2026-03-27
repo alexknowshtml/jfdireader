@@ -5,6 +5,7 @@ import { ArticleList } from "@/components/article/ArticleList";
 import { ReadingPane } from "@/components/article/ReadingPane";
 import { TriageBar } from "@/components/triage/TriageBar";
 import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
+import { FeedSettingsModal } from "@/components/feed/FeedSettingsModal";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import {
   CommandDialog,
@@ -91,6 +92,7 @@ function ReaderApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsFeedId, setSettingsFeedId] = useState<number | null>(null);
   const lastAction = useRef<{ itemId: number; action: string; snapshot: FeedItemWithState[] | undefined; queryKey: any[] } | null>(null);
 
   // Fetch feeds for sidebar
@@ -325,6 +327,7 @@ function ReaderApp() {
           }}
           totalUnread={totalUnread}
           totalQueued={totalQueued}
+          onFeedSettings={(id) => { setSettingsFeedId(id); setSidebarOpen(false); }}
         />
       </div>
 
@@ -409,7 +412,7 @@ function ReaderApp() {
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
-          <div className="border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0 pt-[max(env(safe-area-inset-bottom),1.5rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)]">
+          <div className="border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0 pt-2.5 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
             <button
               onClick={() => setViewMode("triage")}
               className="text-xs px-3 py-2 rounded-md hover:bg-accent flex items-center gap-1.5"
@@ -472,6 +475,7 @@ function ReaderApp() {
 
       {/* Shortcuts help */}
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <FeedSettingsModal feedId={settingsFeedId} onClose={() => setSettingsFeedId(null)} />
     </div>
   );
 }

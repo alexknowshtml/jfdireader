@@ -24,6 +24,21 @@ export async function pollAllFeeds() {
   return fetchJSON("/feeds/poll", { method: "POST" });
 }
 
+export async function getFeed(id: number) {
+  return fetchJSON<any>(`/feeds/${id}`);
+}
+
+export async function updateFeed(id: number, data: { title?: string; pollIntervalMinutes?: number }) {
+  return fetchJSON<any>(`/feeds/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteFeed(id: number) {
+  return fetchJSON(`/feeds/${id}`, { method: "DELETE" });
+}
+
 // Items
 export async function getItems(params: {
   feedId?: number | null;
