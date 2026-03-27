@@ -394,7 +394,7 @@ function ReaderApp() {
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
-          <div className="border-t bg-muted/30 flex items-center px-4 py-3 gap-2 flex-shrink-0 pb-[max(env(safe-area-inset-bottom),1.5rem)]">
+          <div className="border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0 pt-[max(env(safe-area-inset-bottom),1.5rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)]">
             <button
               onClick={() => setViewMode("triage")}
               className="text-xs px-3 py-2 rounded-md hover:bg-accent flex items-center gap-1.5"

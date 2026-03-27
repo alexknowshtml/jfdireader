@@ -17,7 +17,7 @@ export function TriageBar({
   onStar,
 }: TriageBarProps) {
   return (
-    <div className="border-t bg-muted/30 px-4 py-3 pb-[max(env(safe-area-inset-bottom),1.5rem)] flex-shrink-0">
+    <div className="border-t bg-muted/30 px-4 pt-[max(env(safe-area-inset-bottom),1.5rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)] flex-shrink-0">
       <div className="flex items-center justify-center gap-2">
         <TriageButton
           label="Skip"
