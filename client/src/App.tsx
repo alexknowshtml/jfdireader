@@ -102,7 +102,7 @@ function ReaderApp() {
   });
 
   // Fetch items based on current view
-  const { data: items = [], isLoading } = useQuery({
+  const { data: items = [] } = useQuery({
     queryKey: ["items", selectedFeedId, sidebarView],
     queryFn: () =>
       sidebarView === "queue"
@@ -362,9 +362,6 @@ function ReaderApp() {
               ) : null;
             })()}
             <div className="flex-1" />
-            {isLoading && (
-              <span className="text-xs text-muted-foreground">Loading</span>
-            )}
             <button
               onClick={() => setHelpOpen(true)}
               className="hidden md:block text-xs text-muted-foreground px-1.5 py-1 rounded hover:bg-accent"
