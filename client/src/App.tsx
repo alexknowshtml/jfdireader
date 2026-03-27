@@ -67,12 +67,27 @@ queryClient.getQueryCache().subscribe((event) => {
 type ViewMode = "triage" | "reading";
 type SidebarView = "all" | "unread" | "starred" | "queue";
 
+// Parse URL hash for persisted state: #view/feedId/itemId or #read/itemId
+function parseHash(): { view?: SidebarView; feedId?: number | null; itemId?: number; mode?: ViewMode } {
+  const hash = window.location.hash.slice(1);
+  if (!hash) return {};
+  const parts = hash.split("/");
+  if (parts[0] === "read" && parts[1]) {
+    return { mode: "reading", itemId: parseInt(parts[1]) };
+  }
+  const view = (["unread", "all", "starred", "queue"].includes(parts[0]) ? parts[0] : undefined) as SidebarView | undefined;
+  const feedId = parts[1] ? parseInt(parts[1]) : null;
+  return { view, feedId };
+}
+
 function ReaderApp() {
   const qc = useQueryClient();
-  const [selectedFeedId, setSelectedFeedId] = useState<number | null>(null);
-  const [sidebarView, setSidebarView] = useState<SidebarView>("unread");
+  const initialHash = useRef(parseHash());
+  const [selectedFeedId, setSelectedFeedId] = useState<number | null>(initialHash.current.feedId ?? null);
+  const [sidebarView, setSidebarView] = useState<SidebarView>(initialHash.current.view || "unread");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<ViewMode>("triage");
+  const [viewMode, setViewMode] = useState<ViewMode>(initialHash.current.mode || "triage");
+  const [pendingItemId, setPendingItemId] = useState<number | undefined>(initialHash.current.itemId);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -100,8 +115,35 @@ function ReaderApp() {
 
   const currentItem: FeedItemWithState | undefined = items[selectedIndex];
 
-  // Reset selection when view changes
+  // Resolve pending item ID from URL hash once items load
   useEffect(() => {
+    if (pendingItemId && items.length > 0) {
+      const idx = items.findIndex((i) => i.id === pendingItemId);
+      if (idx >= 0) {
+        setSelectedIndex(idx);
+      }
+      setPendingItemId(undefined);
+    }
+  }, [pendingItemId, items]);
+
+  // Update URL hash when state changes
+  useEffect(() => {
+    if (viewMode === "reading" && currentItem) {
+      window.location.hash = `read/${currentItem.id}`;
+    } else {
+      const parts: string[] = [sidebarView];
+      if (selectedFeedId) parts.push(String(selectedFeedId));
+      window.location.hash = parts.join("/");
+    }
+  }, [viewMode, currentItem, sidebarView, selectedFeedId]);
+
+  // Reset selection when view changes (but not on initial load)
+  const isInitialLoad = useRef(true);
+  useEffect(() => {
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      return;
+    }
     setSelectedIndex(0);
     setViewMode("triage");
   }, [selectedFeedId, sidebarView]);
