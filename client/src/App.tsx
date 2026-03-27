@@ -281,6 +281,7 @@ function ReaderApp() {
   // Build sidebar data
   const unfiledFeeds: any[] = [];
   const totalUnread = feeds.reduce((sum, f) => sum + (f.unreadCount || 0), 0);
+  const totalQueued = feeds.reduce((sum, f: any) => sum + (f.queueCount || 0), 0);
 
   // For now, show all feeds as unfiled (folders need a join query)
   for (const feed of feeds) {
@@ -323,6 +324,7 @@ function ReaderApp() {
             setSidebarOpen(false);
           }}
           totalUnread={totalUnread}
+          totalQueued={totalQueued}
         />
       </div>
 
@@ -342,7 +344,7 @@ function ReaderApp() {
               <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={sidebarView === "unread" ? totalUnread : undefined} />
               <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
               <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
-              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} />
+              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} count={totalQueued || undefined} />
             </div>
             {isLoading && (
               <span className="text-xs text-muted-foreground">Loading</span>

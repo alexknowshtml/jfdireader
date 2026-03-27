@@ -51,11 +51,12 @@ itemsRouter.get("/", async (c) => {
     query = query.where(eq(schema.itemState.isStarred, true));
   }
   if (unread === "true") {
+    // Inbox = untriaged items only (not read, not queued, not skipped)
     query = query.where(
-      sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)`
+      sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)
+        AND (${schema.itemState.triageAction} IS NULL)`
     );
     // For unread+interleaved, fetch more items so every feed gets representation
-    // The interleave function will trim back to a reasonable page size
     if (!feedId) {
       query = query.limit(1000);
     }

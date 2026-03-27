@@ -23,6 +23,7 @@ interface SidebarProps {
   onSelectFeed: (feedId: number | null) => void;
   onSelectView: (view: string) => void;
   totalUnread: number;
+  totalQueued: number;
 }
 
 export function Sidebar({
@@ -33,6 +34,7 @@ export function Sidebar({
   onSelectFeed,
   onSelectView,
   totalUnread,
+  totalQueued,
 }: SidebarProps) {
   return (
     <div className="w-64 border-r bg-sidebar flex flex-col h-full flex-shrink-0">
@@ -100,11 +102,16 @@ export function Sidebar({
               onSelectView("queue");
             }}
             className={cn(
-              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
+              "w-full text-left px-3 py-2 rounded-md text-sm flex justify-between items-center hover:bg-accent",
               selectedView === "queue" && "bg-accent font-medium"
             )}
           >
-            ◆ Reading Queue
+            <span>◆ Reading Queue</span>
+            {totalQueued > 0 && (
+              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                {totalQueued}
+              </span>
+            )}
           </button>
 
           <Separator className="my-2" />

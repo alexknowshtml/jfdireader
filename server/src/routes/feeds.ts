@@ -25,8 +25,13 @@ feedsRouter.get("/", async (c) => {
       unreadCount: sql<number>`
         (SELECT COUNT(*) FROM items i
          LEFT JOIN item_state s ON s.item_id = i.id
-         WHERE i.feed_id = feeds.id AND (s.is_read IS NULL OR s.is_read = 0))
+         WHERE i.feed_id = feeds.id AND (s.is_read IS NULL OR s.is_read = 0) AND s.triage_action IS NULL)
       `.as("unread_count"),
+      queueCount: sql<number>`
+        (SELECT COUNT(*) FROM items i
+         INNER JOIN item_state s ON s.item_id = i.id
+         WHERE i.feed_id = feeds.id AND s.triage_action IN ('queue', 'pin') AND s.is_read = 0)
+      `.as("queue_count"),
     })
     .from(schema.feeds);
 
