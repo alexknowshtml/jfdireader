@@ -44,7 +44,7 @@ export function Sidebar({
       <Separator />
       <ScrollArea className="flex-1">
         <div className="p-2">
-          {/* All unread */}
+          {/* Inbox (untriaged) */}
           <button
             onClick={() => {
               onSelectFeed(null);
@@ -57,42 +57,12 @@ export function Sidebar({
                 "bg-accent font-medium"
             )}
           >
-            <span>Unread</span>
+            <span>Inbox</span>
             {totalUnread > 0 && (
               <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
                 {totalUnread}
               </span>
             )}
-          </button>
-
-          {/* All items */}
-          <button
-            onClick={() => {
-              onSelectFeed(null);
-              onSelectView("all");
-            }}
-            className={cn(
-              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
-              selectedFeedId === null &&
-                selectedView === "all" &&
-                "bg-accent font-medium"
-            )}
-          >
-            All items
-          </button>
-
-          {/* Starred */}
-          <button
-            onClick={() => {
-              onSelectFeed(null);
-              onSelectView("starred");
-            }}
-            className={cn(
-              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
-              selectedView === "starred" && "bg-accent font-medium"
-            )}
-          >
-            ★ Starred
           </button>
 
           {/* Queue */}
@@ -112,6 +82,36 @@ export function Sidebar({
                 {totalQueued}
               </span>
             )}
+          </button>
+
+          {/* Starred */}
+          <button
+            onClick={() => {
+              onSelectFeed(null);
+              onSelectView("starred");
+            }}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
+              selectedView === "starred" && "bg-accent font-medium"
+            )}
+          >
+            ★ Starred
+          </button>
+
+          {/* All items */}
+          <button
+            onClick={() => {
+              onSelectFeed(null);
+              onSelectView("all");
+            }}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent",
+              selectedFeedId === null &&
+                selectedView === "all" &&
+                "bg-accent font-medium"
+            )}
+          >
+            All items
           </button>
 
           <Separator className="my-2" />

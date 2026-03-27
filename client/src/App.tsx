@@ -340,12 +340,13 @@ function ReaderApp() {
             >
               ☰
             </button>
-            <div className="flex gap-1 flex-1 min-w-0">
-              <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={totalUnread || undefined} />
-              <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
-              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
+            <div className="flex gap-1 min-w-0">
+              <ViewButton label="Inbox" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={totalUnread || undefined} />
               <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} count={totalQueued || undefined} />
+              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
             </div>
+            <div className="flex-1" />
+            <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
             {isLoading && (
               <span className="text-xs text-muted-foreground">Loading</span>
             )}
