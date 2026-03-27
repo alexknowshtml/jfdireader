@@ -185,13 +185,21 @@ function normalizeItem(format: string, item: any): ParsedItem | null {
 
 /**
  * Ingest parsed items into the database, skipping duplicates by guid.
+ * Items older than maxAgeDays are silently skipped to prevent backlog buildup.
  * Returns count of new items inserted.
  */
-export async function ingestItems(feedId: number, items: ParsedItem[]): Promise<number> {
+export async function ingestItems(feedId: number, items: ParsedItem[], maxAgeDays: number = 14): Promise<number> {
   let inserted = 0;
+  const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
 
   for (const item of items) {
     if (!item.guid) continue;
+
+    // Skip items older than the cutoff to prevent backlog buildup
+    if (item.publishedAt) {
+      const pubDate = new Date(item.publishedAt).getTime();
+      if (pubDate > 0 && pubDate < cutoff) continue;
+    }
 
     const wordCount = item.content
       ? item.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length
