@@ -16,7 +16,7 @@
 
 ---
 
-## Completed (14 milestones)
+## Completed (18 milestones)
 
 ### 1. Scaffold ✅
 - Bun + Hono + React 19 + shadcn/ui + Drizzle + SQLite
@@ -47,7 +47,7 @@
 - Keyboard navigation: j/k, s (skip), Enter (read), q (queue), p (pin)
 - Reading pane with typography styling, word count, reading time
 - Triage bar with action buttons and keyboard hints
-- Sidebar with Unread/All/Starred/Queue views + per-feed filtering
+- Sidebar with Inbox/Queue/Starred/All views + per-feed filtering
 - Command palette search (/) and shortcuts help dialog (?)
 - `f42caec` Build triage mode UI with keyboard navigation
 
@@ -64,8 +64,8 @@
 
 ### 8. Undo ✅
 - `z` key to undo last triage action
-- Resets item to unseen/unread state
-- `1e621d3` Add undo for triage actions (z key)
+- Optimistic snapshot restore (instant undo)
+- `1e621d3`, `17ed0cf`
 
 ### 9. Click-to-Open + Reading Mode Bar ✅
 - Clicking article in list opens reading mode directly
@@ -75,8 +75,9 @@
 ### 10. Mobile Responsive ✅
 - Collapsible sidebar with hamburger toggle (auto-close on selection)
 - iOS safe area spacing (notch + home indicator + Safari toolbar)
-- Triage bar padding and "Read Now" → "Read" on mobile
-- `260dceb`, `649e189`, `1749a59`, `df3efac`
+- Symmetric top/bottom padding on triage bars
+- "Read Now" → "Read" on mobile
+- `260dceb`, `649e189`, `1749a59`, `df3efac`, `37e9463`
 
 ### 11. Optimistic Updates ✅
 - Skip/queue/pin remove items instantly (no API wait)
@@ -86,11 +87,10 @@
 
 ### 12. Reading Flow ✅
 - Skip/queue/pin in reading mode advance to next article (not back to list)
-- Toolbar unread count shows real total from feeds (not page size)
-- `210c296`, `67e9a18`
+- `210c296`
 
 ### 13. Round-Robin Sort ✅
-- Unread view interleaves items across feeds (no single feed dominates)
+- Inbox view interleaves items across feeds (no single feed dominates)
 - Feeds sorted by recency, round-robin dealt
 - All 13 feeds visible in first 20 items
 - `c797ed2` Add round-robin interleaving for unread items across feeds
@@ -99,41 +99,65 @@
 - localStorage cache (5min TTL) for instant repeat loads
 - QueryClient hydration from cache on startup
 - Cmd/Ctrl/Alt key passthrough (browser shortcuts work)
-- Optimistic undo with snapshot restore
-- `bde7d99`, `8cebaf1`, `17ed0cf`
+- Slim list queries (no content in list API, fetched on demand)
+- `bde7d99`, `8cebaf1`, `a1d2cb4`
+
+### 15. URL State Persistence ✅
+- URL hash tracks current view and reading position
+- Refresh restores view, feed filter, and open article
+- `576714e` Persist view state in URL hash
+
+### 16. Inbox/Queue Separation ✅
+- Inbox = untriaged items only (skip and queue remove from inbox)
+- Queue is its own bucket with count badge in sidebar and toolbar
+- Skip = archive (decided, gone from inbox)
+- Cleared 853 old City Cast Philly items (kept 2 weeks)
+- `5b2bef0` Separate inbox from queue
+
+### 17. Toolbar Refinement ✅
+- Renamed Unread → Inbox
+- Reordered: Inbox | Queue | Starred (All moved to sidebar only)
+- Counts always visible on Inbox and Queue tabs
+- `2d8f7a2`, `da408bd`
+
+### 18. Feed Filtering ✅
+- Clicking feed in sidebar filters item list to that feed
+- Filter chip appears in toolbar with feed name and ✕ to clear
+- Toolbar view buttons clear feed filter when clicked
+- `b5df538` Add feed filter chip
 
 ---
 
 ## Remaining Phase 1
 
-### 15. OPML Import UI
+### 19. OPML Import UI
 - File upload component
 - Parse OPML, show preview of feeds to import
 - Folder mapping from OPML categories
 - Backend endpoint already exists (`POST /api/feeds/import/opml`)
 
-### 16. Full-Text Search (FTS5)
+### 20. Full-Text Search (FTS5)
 - SQLite FTS5 virtual table for items
 - Search by title, content, author
 - Wire into command palette (/) and search bar
 
-### 17. Newsletter Email Ingestion
+### 21. Newsletter Email Ingestion
 - Dedicated email address per instance
 - Incoming emails → feed items
 - Sender auto-mapping to feeds
 - This unlocks the other 13 email-only sources from the starter list
 
-### 18. Reading Queue + Reading Mode Polish
+### 22. Reading Queue + Reading Mode Polish
 - Queue sorting (pinned first, then chronological or relevance)
 - Queue expiry (configurable, default 30 days)
 - Swipe gestures for mobile triage
 - Reading progress tracking (scroll depth, dwell time)
 
-### 19. PWA Setup
+### 23. PWA Setup
 - Service worker for offline support
 - Web app manifest + install prompt
 
-### 20. Docker Container
+### 24. Docker Container
 - Dockerfile (Bun runtime)
 - SQLite + cache volume mount
 - docker-compose.yml
@@ -143,14 +167,13 @@
 ## Session Stats
 
 - **Date:** 2026-03-27
-- **Commits:** 22
-- **Milestones completed:** 14 of 20
-- **Feeds:** 13 active, 1,134 items ingested
-- **Key files:** 15 source files across client + server
+- **Commits:** 30
+- **Milestones completed:** 18 of 24
+- **Feeds:** 13 active, ~281 items (after City Cast cleanup)
 
 ## Tech Stack
 - **Backend:** Bun + Hono
-- **Frontend:** React 19 + Vite + shadcn/ui + Tailwind CSS
-- **Database:** SQLite + Drizzle ORM + bun:sqlite
+- **Frontend:** React 19 + Vite + Tailwind CSS + shadcn/ui
+- **Database:** SQLite + Drizzle ORM (via bun:sqlite)
 - **Feed parsing:** Feedsmith
 - **Port:** 3100
