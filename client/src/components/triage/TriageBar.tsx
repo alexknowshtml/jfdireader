@@ -18,7 +18,7 @@ export function TriageBar({
   onStar,
 }: TriageBarProps) {
   return (
-    <div className="h-12 border-t bg-muted/30 flex items-center px-4 gap-2">
+    <div className="border-t bg-muted/30 flex items-center px-4 gap-2 pb-[env(safe-area-inset-bottom)] min-h-12">
       <span className="text-xs text-muted-foreground truncate flex-1 mr-4">
         {itemTitle || "No item selected"}
       </span>

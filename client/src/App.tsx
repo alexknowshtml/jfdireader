@@ -210,31 +210,33 @@ function ReaderApp() {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Toolbar */}
-        <div className="h-12 border-b flex items-center px-4 gap-3 flex-shrink-0">
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden text-sm px-1.5 py-1 rounded hover:bg-accent"
-            aria-label="Open sidebar"
-          >
-            ☰
-          </button>
-          <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} />
-          <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
-          <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
-          <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} />
-          <div className="flex-1" />
-          {isLoading && (
-            <span className="text-xs text-muted-foreground">Loading...</span>
-          )}
-          <span className="text-xs text-muted-foreground">
-            {items.length} items
-          </span>
-          <span className="text-xs text-muted-foreground">
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">?</kbd>{" "}
-            shortcuts
-          </span>
+        {/* Toolbar - with safe area top padding for mobile notch */}
+        <div className="border-b flex-shrink-0 pt-[env(safe-area-inset-top)]">
+          <div className="h-12 flex items-center px-4 gap-2">
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden text-lg px-2 py-1.5 rounded hover:bg-accent"
+              aria-label="Open sidebar"
+            >
+              ☰
+            </button>
+            <div className="flex gap-1 flex-1 min-w-0">
+              <ViewButton label="Unread" active={sidebarView === "unread"} onClick={() => setSidebarView("unread")} count={sidebarView === "unread" ? items.length : undefined} />
+              <ViewButton label="All" active={sidebarView === "all"} onClick={() => setSidebarView("all")} />
+              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => setSidebarView("starred")} />
+              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => setSidebarView("queue")} />
+            </div>
+            {isLoading && (
+              <span className="text-xs text-muted-foreground">Loading</span>
+            )}
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="hidden md:block text-xs text-muted-foreground px-1.5 py-1 rounded hover:bg-accent"
+            >
+              <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">?</kbd>
+            </button>
+          </div>
         </div>
 
         {/* Main content area */}
@@ -273,7 +275,7 @@ function ReaderApp() {
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
-          <div className="h-12 border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0">
+          <div className="border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0 pb-[env(safe-area-inset-bottom)] min-h-12">
             <button
               onClick={() => setViewMode("triage")}
               className="text-xs px-3 py-1.5 rounded-md hover:bg-accent flex items-center gap-1.5"
@@ -340,15 +342,18 @@ function ReaderApp() {
   );
 }
 
-function ViewButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function ViewButton({ label, active, onClick, count }: { label: string; active: boolean; onClick: () => void; count?: number }) {
   return (
     <button
       onClick={onClick}
-      className={`text-xs px-2 py-1 rounded ${
-        active ? "bg-accent font-medium" : "text-muted-foreground hover:text-foreground"
+      className={`text-xs px-2.5 py-1.5 rounded-md transition-colors ${
+        active ? "bg-accent font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
       }`}
     >
       {label}
+      {count !== undefined && (
+        <span className="ml-1 text-[10px] opacity-60">{count}</span>
+      )}
     </button>
   );
 }
