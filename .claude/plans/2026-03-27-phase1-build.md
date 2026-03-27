@@ -16,7 +16,7 @@
 
 ---
 
-## Completed (18 milestones)
+## Completed (21 milestones)
 
 ### 1. Scaffold ✅
 - Bun + Hono + React 19 + shadcn/ui + Drizzle + SQLite
@@ -126,38 +126,55 @@
 - Toolbar view buttons clear feed filter when clicked
 - `b5df538` Add feed filter chip
 
+### 19. Feed Settings Modal ✅
+- Gear icon on hover for each feed in sidebar
+- Modal: display name, poll interval, feed URL, site link, error status
+- Unsubscribe with confirmation dialog
+- PATCH /feeds/:id endpoint
+- `01f01be` Add feed settings modal
+
+### 20. Ingestion Age Filter ✅
+- Items older than 14 days silently skipped during ingestion
+- Prevents high-volume feeds (City Cast 865 episodes) from backlog buildup
+- `3dfbac1` Skip items older than 14 days
+
+### 21. Where Clause Fix ✅
+- Multiple .where() calls in Drizzle were overwriting each other
+- Combined into single and() for proper feed + unread filtering
+- `01f01be` (included in feed settings commit)
+
 ---
 
 ## Remaining Phase 1
 
-### 19. OPML Import UI
+### 22. OPML Import UI
 - File upload component
 - Parse OPML, show preview of feeds to import
 - Folder mapping from OPML categories
 - Backend endpoint already exists (`POST /api/feeds/import/opml`)
 
-### 20. Full-Text Search (FTS5)
+### 23. Full-Text Search (FTS5)
 - SQLite FTS5 virtual table for items
 - Search by title, content, author
 - Wire into command palette (/) and search bar
 
-### 21. Newsletter Email Ingestion
+### 24. Newsletter Email Ingestion
 - Dedicated email address per instance
 - Incoming emails → feed items
 - Sender auto-mapping to feeds
 - This unlocks the other 13 email-only sources from the starter list
 
-### 22. Reading Queue + Reading Mode Polish
+### 25. Reading Queue + Reading Mode Polish
 - Queue sorting (pinned first, then chronological or relevance)
 - Queue expiry (configurable, default 30 days)
 - Swipe gestures for mobile triage
 - Reading progress tracking (scroll depth, dwell time)
 
-### 23. PWA Setup
+### 26. PWA Setup
 - Service worker for offline support
 - Web app manifest + install prompt
 
-### 24. Docker Container
+### 27. Docker Container
 - Dockerfile (Bun runtime)
 - SQLite + cache volume mount
 - docker-compose.yml
@@ -167,8 +184,8 @@
 ## Session Stats
 
 - **Date:** 2026-03-27
-- **Commits:** 30
-- **Milestones completed:** 18 of 24
+- **Commits:** 33
+- **Milestones completed:** 21 of 27
 - **Feeds:** 13 active, ~281 items (after City Cast cleanup)
 
 ## Tech Stack
