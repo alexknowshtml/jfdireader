@@ -416,32 +416,32 @@ function ReaderApp() {
               className="text-xs px-3 py-2 rounded-md hover:bg-accent flex items-center gap-1.5"
             >
               ← Back
-              <kbd className="text-[10px] opacity-60">Esc</kbd>
+              <kbd className="hidden md:inline text-[10px] opacity-60">Esc</kbd>
             </button>
             <div className="flex-1" />
             <button
               onClick={handleSkip}
               className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
-              Skip <kbd className="text-[10px] opacity-60">s</kbd>
+              Skip <kbd className="hidden md:inline text-[10px] opacity-60">s</kbd>
             </button>
             <button
               onClick={handleQueue}
               className="text-xs px-3 py-2 rounded-md bg-accent hover:bg-accent/80"
             >
-              Queue <kbd className="text-[10px] opacity-60">q</kbd>
+              Queue <kbd className="hidden md:inline text-[10px] opacity-60">q</kbd>
             </button>
             <button
               onClick={handleStar}
               className={`text-xs px-3 py-1.5 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
             >
-              {currentItem.isStarred ? "★" : "☆"} <kbd className="text-[10px] opacity-60">f</kbd>
+              {currentItem.isStarred ? "★" : "☆"} <kbd className="hidden md:inline text-[10px] opacity-60">f</kbd>
             </button>
             <button
               onClick={() => { if (currentItem?.url) window.open(currentItem.url, "_blank"); }}
               className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
-              Original <kbd className="text-[10px] opacity-60">v</kbd>
+              Original <kbd className="hidden md:inline text-[10px] opacity-60">v</kbd>
             </button>
           </div>
         )}

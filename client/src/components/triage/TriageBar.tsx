@@ -87,7 +87,7 @@ function TriageButton({
       ) : (
         label
       )}
-      <kbd className="text-[10px] opacity-60">{shortcut}</kbd>
+      <kbd className="hidden md:inline text-[10px] opacity-60">{shortcut}</kbd>
     </button>
   );
 }
