@@ -54,9 +54,12 @@ export function ReadingPane({ item }: ReadingPaneProps) {
         <div
           className="prose prose-sm dark:prose-invert max-w-none
             prose-headings:font-semibold prose-a:text-primary
-            prose-img:rounded-lg prose-pre:bg-muted"
+            prose-img:rounded-lg prose-pre:bg-muted
+            prose-p:my-2 prose-p:leading-relaxed
+            [&_p:empty]:hidden [&_p_br:only-child]:hidden
+            [&_br+br]:hidden"
           dangerouslySetInnerHTML={{
-            __html: item.content || item.summary || "<p>No content available.</p>",
+            __html: cleanContent(item.content || item.summary || "<p>No content available.</p>"),
           }}
         />
 
@@ -81,6 +84,28 @@ export function ReadingPane({ item }: ReadingPaneProps) {
       </div>
     </div>
   );
+}
+
+/**
+ * Clean up common RSS content issues:
+ * - Empty paragraphs with just <br> tags
+ * - Consecutive <br> tags creating excessive whitespace
+ * - Non-breaking spaces used as spacers
+ * - Empty paragraphs
+ */
+function cleanContent(html: string): string {
+  return html
+    // Remove <p> tags that only contain <br> and/or whitespace
+    .replace(/<p[^>]*>\s*(<br\s*\/?>[\s\n]*)+\s*<\/p>/gi, "")
+    // Remove empty <p> tags
+    .replace(/<p[^>]*>\s*<\/p>/gi, "")
+    // Collapse 3+ consecutive <br> into 2
+    .replace(/(<br\s*\/?>[\s\n]*){3,}/gi, "<br><br>")
+    // Remove leading/trailing <br> inside <p> tags
+    .replace(/<p([^>]*)>\s*<br\s*\/?>\s*/gi, "<p$1>")
+    .replace(/\s*<br\s*\/?>\s*<\/p>/gi, "</p>")
+    // Replace &nbsp; sequences used as spacers
+    .replace(/(&nbsp;\s*){3,}/g, " ");
 }
 
 function formatDate(iso: string): string {
