@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSwipe } from "@/hooks/useSwipe";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { cn } from "@/lib/utils";
 import type { FeedItemWithState } from "../../../../shared/types";
 
@@ -10,6 +11,7 @@ interface ArticleListProps {
   onSelect: (index: number) => void;
   onArchive?: (index: number) => void;
   onQueue?: (index: number) => void;
+  onRefresh?: () => Promise<void>;
   viewMode: "expanded" | "headlines";
   isLoading?: boolean;
 }
@@ -20,10 +22,16 @@ export function ArticleList({
   onSelect,
   onArchive,
   onQueue,
+  onRefresh,
   viewMode,
   isLoading,
 }: ArticleListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
+
+  const { state: pullState, handlers: pullHandlers } = usePullToRefresh(
+    parentRef,
+    onRefresh || (async () => {})
+  );
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -50,7 +58,35 @@ export function ArticleList({
   }
 
   return (
-    <div ref={parentRef} className="flex-1 overflow-auto">
+    <div
+      ref={parentRef}
+      className="flex-1 overflow-auto"
+      {...(onRefresh ? pullHandlers : {})}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullState.pulling || pullState.refreshing) && (
+        <div
+          className="flex items-center justify-center overflow-hidden transition-[height] duration-200"
+          style={{ height: pullState.pullDistance }}
+        >
+          {pullState.refreshing ? (
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <svg
+              className={cn(
+                "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                pullState.pullDistance >= 60 && "text-primary rotate-180"
+              )}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 5v14M5 12l7-7 7 7" />
+            </svg>
+          )}
+        </div>
+      )}
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,

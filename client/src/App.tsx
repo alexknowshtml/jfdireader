@@ -429,6 +429,7 @@ function ReaderApp() {
               lastAction.current = { itemId: item.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
               api.triageItem(item.id, "queue").catch(() => rollback(ctx));
             }}
+            onRefresh={handleRefresh}
             viewMode="expanded"
             isLoading={isFetching && items.length === 0}
           />
