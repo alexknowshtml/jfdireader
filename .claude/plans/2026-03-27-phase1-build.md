@@ -16,7 +16,7 @@
 
 ---
 
-## Completed (21 milestones)
+## Completed (25 milestones)
 
 ### 1. Scaffold ✅
 - Bun + Hono + React 19 + shadcn/ui + Drizzle + SQLite
@@ -28,7 +28,7 @@
 
 ### 3. Schema Update ✅
 - 5-tier engagement model (unseen → acted_on)
-- Triage actions (skip/read_now/queue/pin)
+- Triage actions (archive/read_now/queue/pin)
 - Implicit signals (scroll depth, dwell time, completion)
 - Post-read action timestamps, feed settings table
 - `3fcfc7c` Update schema for signal capture, triage states, and reading queue
@@ -44,7 +44,7 @@
 
 ### 5. Triage Mode UI ✅
 - Virtual-scrolled article list (expanded + headline modes)
-- Keyboard navigation: j/k, s (skip), Enter (read), q (queue), p (pin)
+- Keyboard navigation: j/k, s (archive), Enter (read), q (queue), p (pin)
 - Reading pane with typography styling, word count, reading time
 - Triage bar with action buttons and keyboard hints
 - Sidebar with Inbox/Queue/Starred/All views + per-feed filtering
@@ -80,13 +80,13 @@
 - `260dceb`, `649e189`, `1749a59`, `df3efac`, `37e9463`
 
 ### 11. Optimistic Updates ✅
-- Skip/queue/pin remove items instantly (no API wait)
+- Archive/queue/pin remove items instantly (no API wait)
 - Feed unread counts update immediately
 - Rollback on API failure (item snaps back)
 - `9b50abe` Add optimistic updates for instant triage feel
 
 ### 12. Reading Flow ✅
-- Skip/queue/pin in reading mode advance to next article (not back to list)
+- Archive/queue/pin in reading mode advance to next article (not back to list)
 - `210c296`
 
 ### 13. Round-Robin Sort ✅
@@ -108,9 +108,9 @@
 - `576714e` Persist view state in URL hash
 
 ### 16. Inbox/Queue Separation ✅
-- Inbox = untriaged items only (skip and queue remove from inbox)
+- Inbox = untriaged items only (archive and queue remove from inbox)
 - Queue is its own bucket with count badge in sidebar and toolbar
-- Skip = archive (decided, gone from inbox)
+- Archive = decided, gone from inbox
 - Cleared 853 old City Cast Philly items (kept 2 weeks)
 - `5b2bef0` Separate inbox from queue
 
@@ -143,38 +143,61 @@
 - Combined into single and() for proper feed + unread filtering
 - `01f01be` (included in feed settings commit)
 
+### 22. Skip → Archive Rename ✅
+- Renamed triage action from "skip" to "archive" across UI, types, and API
+- Updated 8 files: types, API client, keyboard nav, triage bar, shortcuts help, App, server routes, schema
+- `4996739` Rename triage action 'skip' to 'archive'
+
+### 23. PWA Bottom Padding ✅
+- Safe-area bottom padding for home indicator in PWA mode
+- Uses `pb-[max(0.75rem,env(safe-area-inset-bottom))]` on both triage and reading bars
+- `30c86c4` Add safe-area bottom padding for PWA mode
+
+### 24. Long-Press Feed Settings ✅
+- Press and hold (500ms) on sidebar feed opens settings modal
+- Works on both touch (onTouchStart/End) and mouse (onMouseDown/Up)
+- Desktop gear-on-hover remains intact
+- `33cfb65` Add long-press to open feed settings on mobile
+
+### 25. Haptic Feedback ✅
+- ios-vibrator-pro-max polyfill for iOS Safari vibration API
+- Light haptic (10ms) on triage actions (archive, queue, pin, star)
+- Medium haptic (25ms) on long-press feed settings trigger
+- Utility at `client/src/lib/haptics.ts` with graceful no-op fallback
+- `8bf26a9` Add haptic feedback for triage actions and long-press
+
 ---
 
 ## Remaining Phase 1
 
-### 22. OPML Import UI
+### 26. OPML Import UI
 - File upload component
 - Parse OPML, show preview of feeds to import
 - Folder mapping from OPML categories
 - Backend endpoint already exists (`POST /api/feeds/import/opml`)
 
-### 23. Full-Text Search (FTS5)
+### 27. Full-Text Search (FTS5)
 - SQLite FTS5 virtual table for items
 - Search by title, content, author
 - Wire into command palette (/) and search bar
 
-### 24. Newsletter Email Ingestion
+### 28. Newsletter Email Ingestion
 - Dedicated email address per instance
 - Incoming emails → feed items
 - Sender auto-mapping to feeds
 - This unlocks the other 13 email-only sources from the starter list
 
-### 25. Reading Queue + Reading Mode Polish
+### 29. Reading Queue + Reading Mode Polish
 - Queue sorting (pinned first, then chronological or relevance)
 - Queue expiry (configurable, default 30 days)
 - Swipe gestures for mobile triage
 - Reading progress tracking (scroll depth, dwell time)
 
-### 26. PWA Setup
+### 30. PWA Setup
 - Service worker for offline support
 - Web app manifest + install prompt
 
-### 27. Docker Container
+### 31. Docker Container
 - Dockerfile (Bun runtime)
 - SQLite + cache volume mount
 - docker-compose.yml
@@ -184,8 +207,8 @@
 ## Session Stats
 
 - **Date:** 2026-03-27
-- **Commits:** 33
-- **Milestones completed:** 21 of 27
+- **Commits:** 37
+- **Milestones completed:** 25 of 31
 - **Feeds:** 13 active, ~281 items (after City Cast cleanup)
 
 ## Tech Stack

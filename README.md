@@ -2,40 +2,67 @@
 
 **Just read the damn internet.**
 
-A universal reading inbox where everything you want to read arrives, gets triaged, and gets processed. RSS feeds, newsletters, social media posts - all normalized into a single stream with a fast keyboard-driven triage flow.
+---
 
-Built for people who read a lot and need a better system for it.
+## What it is
 
-## What it does
+JFDI Reader is a universal reading inbox - one place where everything you want to read arrives, gets triaged, and gets processed. RSS feeds, newsletters, social media posts, Discord threads - all normalized into a single stream with a fast keyboard-driven triage flow.
 
-- **Inbox** - All untriaged items across all feeds in one place. Round-robin interleaved so no single feed dominates.
-- **Fast triage** - Three-action flow: skip (archive), read now, or queue for later. Optimistic updates make every action feel instant.
-- **Reading queue** - Queue articles for focused reading later. Pin the important ones to the top. Separate count badge so you always know what's waiting.
-- **Reading mode** - Clean, focused article view. Skip/queue/star from reading mode advances to the next article automatically.
-- **Signal capture** - Tracks engagement across five tiers (unseen through acted-on) to understand your reading patterns.
-- **Mobile-first** - Responsive design with collapsible sidebar, iOS safe area support, touch-friendly triage bar.
-- **Instant loads** - localStorage cache hydrates the UI immediately on repeat visits. Slim API responses (content fetched on demand).
-- **Undo everything** - Press `z` to instantly undo any triage action. Snapshot-based restore, no server round-trip.
+The internet's real problem isn't a lack of content. It's the difficulty of finding high-signal sources you can trust. Reading is fragmented across email, apps, and chat. There's no way to build a personal trust network around reading, and no way for good writing to surface to people who'd actually care about it. Volume makes it worse: when stuff is everywhere, even a manageable amount feels like drowning.
+
+Google Reader accidentally solved part of this. Following someone's shared items was a trust signal - you weren't following their takes, you were following their taste. JFDI Reader makes that mechanic intentional. The social layer (coming in Phase 3) is built around curation as reputation: sharing means vouching, and the system knows whether you actually read the thing.
+
+---
+
+## Design Principles
+
+These principles override the spec wherever they conflict:
+
+1. **Unified inbox is the product thesis** - Without multi-source ingestion, this is just another RSS app. Universal feed normalization is core.
+2. **The inbox is for deciding, not reading** - Triage and reading are separate modes with distinct UIs.
+3. **Three-action triage** - Every item gets one of three decisions: archive, read now, or queue for later. Fast and final.
+4. **AI is a pluggable enhancement, not a requirement** - BYO API keys as default. No AI needed for core functionality. Degrades gracefully.
+5. **Profile is a pluggable layer** - The relevance engine queries a profile API. Manual doc is the first provider. Any knowledge base can be a future provider.
+6. **Onboarding leverages existing AI context** - Generate a structured prompt users drop into their existing AI assistant to bootstrap their profile. Zero manual typing.
+7. **Output actions are equal citizens** - Share, send, save, and fuel your work should all be one keystroke away from any article.
+8. **Deployment: Dockerized for self, shareable, hosted maybe later** - Build for Alex first. Docker makes it easy to hand to others. Hosted SaaS is a future business decision.
+
+---
+
+## How it works
+
+JFDI Reader has two modes. They're designed for different contexts and different devices.
+
+**Triage mode** is the inbox. Dense, keyboard-driven, high information per screen. You process the firehose here. Every item gets one decision: `a` to archive it, `Enter` to read it now, or `q` to queue it for later. `j`/`k` to move between items. `z` to undo anything. The goal is to work through your inbox fast - without reading everything, but without missing anything worth reading.
+
+**Reading mode** is the queue. Clean, focused, one article at a time. This is where you actually read. Actions from reading mode (archive, queue, star) automatically advance to the next article so you stay in flow. Designed for phone use - touch-friendly, safe-area padding, bottom action bar.
+
+The triage flow is intentionally opinionated. Three actions, not ten. Keyboard shortcuts that feel like Vim. Round-robin interleaving so no single feed dominates your inbox. Optimistic updates so every action feels instant. Full undo (`z`) so you never lose anything by acting too fast.
+
+Press `?` to see all shortcuts. Press `/` to search.
+
+---
+
+## What's next
+
+Phase 1 remaining work: OPML import UI, full-text search (FTS5), newsletter email ingestion, reading queue polish, PWA offline support, Docker container.
+
+Phase 2 adds universal inputs (Bluesky, YouTube, Reddit, Discord/Slack) and an AI layer for relevance blurbs - opt-in per feed, BYO API key.
+
+Phase 3 is the social layer: ATProto integration, sharing as curation, following people's taste not their takes.
+
+---
 
 ## Quick start
 
 Requires [Bun](https://bun.sh/) v1.0+.
 
 ```bash
-# Install dependencies
 bun install
 cd client && bun install && cd ..
-
-# Run database migrations
 bunx drizzle-kit migrate
-
-# Seed with starter feeds (optional - 13 curated feeds across 4 categories)
-bun run server/src/scripts/seed-feeds.ts
-
-# Build the client
+bun run server/src/scripts/seed-feeds.ts  # optional: 13 curated starter feeds
 cd client && bun run build && cd ..
-
-# Start the server (serves both API and client on port 3100)
 bun run server/src/index.ts
 ```
 
@@ -43,122 +70,27 @@ Open http://localhost:3100.
 
 For development with hot reload:
 ```bash
-bun run dev:server   # API server with watch mode
-bun run dev:client   # Vite dev server with HMR
+bun run dev:server   # API with watch mode
+bun run dev:client   # Vite with HMR
 ```
 
-## Concepts
-
-- **Inbox** - Untriaged items. Anything you haven't acted on yet. Interleaved across feeds.
-- **Skip** - Archive. You've seen it, you don't want it. Gone from inbox, findable in "All."
-- **Queue** - Saved for later. Has its own view and count badge. Read when you're ready.
-- **Pin** - Pinned items stick to the top of your queue.
-- **Star** - Favorites. Persists across all views.
-
-## Keyboard shortcuts
-
-| Key | Action |
-|-----|--------|
-| `j` / `k` / `↑` / `↓` | Next / previous item |
-| `s` | Skip (archive) |
-| `Enter` | Read now (open article) |
-| `q` | Queue for later |
-| `p` | Pin to top of queue |
-| `f` | Star / favorite |
-| `z` | Undo last action (instant) |
-| `Shift+A` | Mark all read |
-| `v` | Open original in browser |
-| `r` | Refresh all feeds |
-| `/` | Search |
-| `?` | Show shortcuts |
-| `Esc` | Back to list |
-
-## URL state
-
-The URL hash preserves your position across refreshes:
-- `#unread` - Inbox view
-- `#queue` - Reading queue
-- `#starred` - Starred items
-- `#read/42` - Reading article ID 42
-- `#unread/5` - Inbox filtered to feed ID 5
+---
 
 ## Stack
 
-- **Backend:** Bun + Hono
-- **Frontend:** React 19 + Vite + Tailwind CSS 4 + shadcn/ui
-- **Database:** SQLite + Drizzle ORM (via bun:sqlite)
-- **Feed parsing:** Feedsmith (RSS, Atom, RDF, JSON Feed)
-- **Virtualization:** @tanstack/react-virtual
-- **Typography:** @tailwindcss/typography for article rendering
+Bun + Hono + React 19 + SQLite + Tailwind CSS
 
-## Project structure
+See `server/src/routes/` for API details.
 
-```
-server/
-  src/
-    db/           # Drizzle schema and database connection
-    routes/       # Hono API routes (feeds, items, folders)
-    services/     # Feed fetcher, poller, ingestion engine
-    scripts/      # Seed scripts
-client/
-  src/
-    components/
-      article/    # ArticleList (virtual scroll), ReadingPane
-      layout/     # Sidebar with feed list
-      triage/     # TriageBar, ShortcutsHelp
-      ui/         # shadcn/ui primitives
-    hooks/        # Keyboard navigation
-    lib/          # API client, utilities
-shared/
-  types/          # TypeScript types shared between server and client
-docs/
-  design.md       # Full design document
-  starter-feeds.md # Curated starter feed list
-drizzle/          # Database migrations
-data/             # SQLite database (gitignored)
-```
-
-## API
-
-All endpoints under `/api/`:
-
-**Feeds**
-- `GET /feeds` - List feeds with unread and queue counts
-- `POST /feeds` - Subscribe to a new feed (auto-fetches immediately)
-- `POST /feeds/import/opml` - Import OPML file
-- `POST /feeds/poll` - Trigger refresh of all due feeds
-- `POST /feeds/:id/refresh` - Refresh a single feed
-- `DELETE /feeds/:id` - Unsubscribe (cascades to items)
-
-**Items**
-- `GET /items` - List items (params: feedId, starred, unread, queued, includeContent, limit, offset)
-- `GET /items/:id` - Get single item with full content (for reading mode)
-- `GET /items/queue` - Reading queue (pinned first)
-- `PATCH /items/:id/triage` - Triage action (skip, read_now, queue, pin)
-- `PATCH /items/:id/undo` - Undo triage (reset to unseen)
-- `PATCH /items/:id/read` - Mark read/unread
-- `PATCH /items/:id/star` - Star/unstar
-- `PATCH /items/:id/signal` - Record scroll depth, dwell time, completion
-- `POST /items/mark-all-read` - Mark all read (optional feedId filter)
-
-## Design
-
-See [docs/design.md](docs/design.md) for the full design document covering:
-- Two-mode architecture (triage + reading)
-- Signal capture and engagement tiers
-- Universal feed normalization
-- Social layer via ATProto (Phase 3)
-- Build phases and roadmap
+---
 
 ## Status
 
-**Phase 1: 18 of 24 milestones complete.**
-
-Working today: RSS ingestion (13 feeds), inbox triage with keyboard shortcuts, reading mode, mobile-responsive UI, optimistic updates, localStorage caching, undo, round-robin sort, feed filtering.
-
-Remaining: OPML import UI, full-text search (FTS5), newsletter email ingestion, reading queue polish, PWA, Docker container.
+**Phase 1: 25 of 31 milestones complete.**
 
 See [.claude/plans/2026-03-27-phase1-build.md](.claude/plans/2026-03-27-phase1-build.md) for detailed progress.
+
+---
 
 ## License
 
