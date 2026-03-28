@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tan
 import { Sidebar } from "@/components/layout/Sidebar";
 import { ArticleList } from "@/components/article/ArticleList";
 import { ReadingPane } from "@/components/article/ReadingPane";
-import { TriageBar } from "@/components/triage/TriageBar";
 import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
 import { FeedSettingsModal } from "@/components/feed/FeedSettingsModal";
 import { OpmlImportModal } from "@/components/feed/OpmlImportModal";
@@ -472,17 +471,7 @@ function ReaderApp() {
           />
         )}
 
-        {/* Triage bar */}
-        {viewMode === "triage" && currentItem && (
-          <TriageBar
-            isStarred={currentItem.isStarred}
-            isPinned={currentItem.isPinned}
-            onArchive={handleArchive}
-            onQueue={handleQueue}
-            onPin={handlePin}
-            onStar={handleStar}
-          />
-        )}
+        {/* Triage bar hidden on list view for now */}
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
