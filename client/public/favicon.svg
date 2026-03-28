@@ -1,36 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- App Icon 4: Dark purple/near-black bg, glowing bolt, subtle page -->
-  <rect width="1024" height="1024" fill="#1a0840" rx="0"/>
+  <!-- R2 Refined Light: Cream bg, blue offset, ink J, red dot -->
+  <rect width="1024" height="1024" fill="#F7F3ED"/>
 
-  <!-- Page outline - very subtle -->
-  <rect x="115" y="138" width="530" height="748" rx="34" fill="none" stroke="#863bff" stroke-width="12" opacity="0.25"/>
+  <!-- Blue offset shadow - slightly more pronounced -->
+  <text x="522" y="742" font-family="Georgia, 'Times New Roman', serif" font-weight="900" font-size="700" text-anchor="middle" fill="#457B9D" opacity="0.55">J</text>
 
-  <!-- Corner fold -->
-  <path d="M565 138 L645 138 L645 218" fill="none" stroke="#863bff" stroke-width="12" opacity="0.25" stroke-linejoin="round"/>
-  <path d="M565 138 L645 218 L565 218 Z" fill="#863bff" opacity="0.08"/>
+  <!-- Main ink J -->
+  <text x="512" y="730" font-family="Georgia, 'Times New Roman', serif" font-weight="900" font-size="700" text-anchor="middle" fill="#1C1C1C">J</text>
 
-  <!-- Content lines -->
-  <rect x="198" y="282" width="230" height="22" rx="7" fill="#863bff" opacity="0.3"/>
-  <rect x="198" y="326" width="320" height="13" rx="4" fill="#863bff" opacity="0.12"/>
-  <rect x="198" y="352" width="285" height="13" rx="4" fill="#863bff" opacity="0.12"/>
-  <rect x="198" y="378" width="245" height="13" rx="4" fill="#863bff" opacity="0.1"/>
-
-  <rect x="198" y="438" width="190" height="22" rx="7" fill="#863bff" opacity="0.24"/>
-  <rect x="198" y="482" width="305" height="13" rx="4" fill="#863bff" opacity="0.1"/>
-  <rect x="198" y="508" width="270" height="13" rx="4" fill="#863bff" opacity="0.1"/>
-
-  <rect x="198" y="568" width="160" height="22" rx="7" fill="#863bff" opacity="0.2"/>
-  <rect x="198" y="612" width="285" height="13" rx="4" fill="#863bff" opacity="0.08"/>
-
-  <!-- Glow behind bolt -->
-  <path d="M648 30 L532 460 L642 460 L502 996 L878 380 L728 380 Z" fill="#863bff" opacity="0.3" filter="blur(25px)"/>
-
-  <!-- Bright bolt -->
-  <defs>
-    <linearGradient id="appg4" x1="30%" y1="0%" x2="70%" y2="100%">
-      <stop offset="0%" style="stop-color:#b07aff"/>
-      <stop offset="100%" style="stop-color:#863bff"/>
-    </linearGradient>
-  </defs>
-  <path d="M648 30 L532 460 L642 460 L502 996 L878 380 L728 380 Z" fill="url(#appg4)"/>
+  <!-- Red dot accent -->
+  <circle cx="688" cy="755" r="30" fill="#E63946" opacity="0.85"/>
 </svg>

@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'JFDI Reader',
         short_name: 'Reader',
         description: 'Your personal feed reader',
-        theme_color: '#1a0840',
-        background_color: '#1a0840',
+        theme_color: '#F7F3ED',
+        background_color: '#F7F3ED',
         display: 'standalone',
         icons: [
           {
@@ -31,6 +31,22 @@ export default defineConfig({
           },
           {
             src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: 'pwa-dark-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-dark-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-dark-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
