@@ -319,5 +319,7 @@ These were not resolved in the interview and should be addressed as they arise:
 
 - **GitHub:** github.com/alexknowshtml/jfdireader
 - **Stack:** Bun + Hono + React 19 + shadcn + SQLite + Drizzle
-- **Current state:** Scaffold with database schema, basic API routes, and shadcn components. No functional UI yet.
-- **Next step:** Build Phase 1 core reading loop starting with RSS ingestion and triage mode UI.
+- **Current state:** Phase 1 complete. Phase 1.5 (email content quality) complete.
+- **Phase 1 shipped (36 milestones):** RSS ingestion, adaptive polling, newsletter email ingestion via Gmail label, triage mode (desktop keyboard + mobile swipe), reading mode (clean article view), reading queue with pin/sort, three-action triage (archive/read now/queue), OPML import/export, full-text search (FTS5), starring, PWA with offline support, Docker container, engagement tier tracking, undo system.
+- **Phase 1.5 shipped (email quality):** HTML email body fetching (gogcli `--body-format html`), Readability-based content extraction, email layout table stripping, social share button removal (FeedBlitz/AddToAny/ShareThis), scroll-to-top on article navigation.
+- **Next step:** Phase 2 - Universal Inputs + AI Layer. Candidates: YouTube/Reddit RSS bridges, Bluesky ATProto connector, AI relevance blurbs, post-read action menu.
