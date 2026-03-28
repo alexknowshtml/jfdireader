@@ -57,6 +57,18 @@ function cleanEmailHTML(html: string, title?: string): string {
       'img[src*="open.convertkit"]',
       'img[src*="tracking"]',
       'img[src*="beacon"]',
+      // Social share buttons (FeedBlitz, AddToAny, ShareThis, etc.)
+      'a[href*="feedblitz.com"]',
+      'a[href*="addtoany.com"]',
+      'a[href*="sharethis.com"]',
+      'a[title="FaceBook"]',
+      'a[title="Tweet"]',
+      'a[title="LinkedIn"]',
+      'a[title="Pin it"]',
+      'a[title="Add to Any"]',
+      'a[title="Subscribe by email"]',
+      'a[title="Subscribe by RSS"]',
+      'img[src*="feedblitz.com"]',
     ];
 
     for (const selector of selectorsToRemove) {

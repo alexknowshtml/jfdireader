@@ -23,7 +23,14 @@ export function ReadingPane({ item, onArchive, onQueue }: ReadingPaneProps) {
       setContent(item.content);
     }
   }, [item.id, item.content]);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when navigating to a new item
+  useEffect(() => {
+    scrollContainerRef.current?.scrollTo(0, 0);
+  }, [item.id]);
   const [swipeDir, setSwipeDir] = useState<"left" | "right" | null>(null);
 
   const swipe = useSwipe({
@@ -35,7 +42,7 @@ export function ReadingPane({ item, onArchive, onQueue }: ReadingPaneProps) {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden bg-background relative">
+    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-background relative">
       {/* Swipe edge indicators */}
       {swipeDir === "right" && (
         <div className="fixed left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-emerald-500/40 to-transparent z-10 flex items-center justify-start pl-2 pointer-events-none">
@@ -130,7 +137,15 @@ function cleanContent(html: string): string {
     .replace(/<p([^>]*)>\s*<br\s*\/?>\s*/gi, "<p$1>")
     .replace(/\s*<br\s*\/?>\s*<\/p>/gi, "</p>")
     // Replace &nbsp; sequences used as spacers
-    .replace(/(&nbsp;\s*){3,}/g, " ");
+    .replace(/(&nbsp;\s*){3,}/g, " ")
+    // Remove social share links (FeedBlitz, AddToAny, ShareThis)
+    .replace(/<a[^>]*(?:feedblitz\.com|addtoany\.com|sharethis\.com|title="(?:FaceBook|Tweet|LinkedIn|Pin it|Add to Any|Subscribe by (?:email|RSS))")[^>]*>[\s\S]*?<\/a>/gi, "")
+    // Remove FeedBlitz images
+    .replace(/<img[^>]*feedblitz\.com[^>]*>/gi, "")
+    // Remove "Email to a friend" blocks
+    .replace(/<[^>]*>[\s•]*<a[^>]*Fwd2FriendEdit[^>]*>[\s\S]*?<\/a>[\s•]*<\/[^>]*>/gi, "")
+    // Remove orphaned bullet separators (leftover from removed social links)
+    .replace(/<p[^>]*>\s*[•\s]+\s*<\/p>/gi, "");
 }
 
 function formatDate(iso: string): string {
