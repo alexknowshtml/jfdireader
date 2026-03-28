@@ -367,9 +367,9 @@ function ReaderApp() {
               ☰
             </button>
             <div className="flex gap-1 min-w-0">
-              <ViewButton label="Inbox" active={sidebarView === "unread" && !selectedFeedId} onClick={() => { setSidebarView("unread"); setSelectedFeedId(null); }} count={totalUnread || undefined} />
-              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => { setSidebarView("queue"); setSelectedFeedId(null); }} count={totalQueued || undefined} />
-              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => { setSidebarView("starred"); setSelectedFeedId(null); }} />
+              <ViewButton label="Inbox" active={sidebarView === "unread" && !selectedFeedId} onClick={() => { setSidebarView("unread"); setSelectedFeedId(null); setViewMode("triage"); }} count={totalUnread || undefined} />
+              <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => { setSidebarView("queue"); setSelectedFeedId(null); setViewMode("triage"); }} count={totalQueued || undefined} />
+              <ViewButton label="Starred" active={sidebarView === "starred"} onClick={() => { setSidebarView("starred"); setSelectedFeedId(null); setViewMode("triage"); }} />
             </div>
             {/* Feed filter chip */}
             {selectedFeedId && (() => {
