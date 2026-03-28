@@ -510,7 +510,7 @@ function ReaderApp() {
             </button>
             <button
               onClick={handlePin}
-              className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isPinned ? "text-blue-500" : "text-muted-foreground"}`}
+              className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isPinned ? "text-purple-400" : "text-muted-foreground"}`}
             >
               📌
             </button>

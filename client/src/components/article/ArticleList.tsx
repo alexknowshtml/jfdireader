@@ -288,7 +288,7 @@ function SwipeableRow({
 
 function TriageIndicator({ item }: { item: FeedItemWithState }) {
   if (item.isStarred) return <span className="text-yellow-500 text-xs flex-shrink-0">★</span>;
-  if (item.isPinned) return <span className="text-blue-500 text-xs flex-shrink-0">📌</span>;
+  if (item.isPinned) return <span className="text-purple-400 text-xs flex-shrink-0">📌</span>;
   if (item.triageAction === "queue") return <span className="text-green-500 text-xs flex-shrink-0">◆</span>;
   if (!item.isRead) return <span className="text-primary text-xs flex-shrink-0">●</span>;
   return <span className="text-xs flex-shrink-0 opacity-0">●</span>;
