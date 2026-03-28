@@ -62,6 +62,18 @@
   height: env(safe-area-inset-bottom, 0px);
 }
 
+/* iOS standalone web apps don't report env(safe-area-inset-bottom) reliably */
+@media (display-mode: standalone) {
+  .safe-area-bottom {
+    min-height: 34px;
+  }
+}
+
+/* Fallback for iOS apple-mobile-web-app-capable (navigator.standalone = true) */
+html.standalone .safe-area-bottom {
+  min-height: 34px;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Geist Variable', sans-serif;
