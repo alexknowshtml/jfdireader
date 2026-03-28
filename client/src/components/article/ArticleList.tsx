@@ -219,11 +219,11 @@ function SwipeableRow({
   return (
     <div className="relative overflow-hidden">
       {/* Archive reveal (swipe right) */}
-      <div className="absolute inset-0 flex items-center justify-start px-6 bg-green-600/90 text-white text-sm font-medium">
+      <div className="absolute inset-0 flex items-center justify-start px-6 bg-emerald-500 text-white text-sm font-semibold">
         Archive →
       </div>
       {/* Queue reveal (swipe left) */}
-      <div className="absolute inset-0 flex items-center justify-end px-6 bg-blue-600/90 text-white text-sm font-medium">
+      <div className="absolute inset-0 flex items-center justify-end px-6 bg-purple-600 text-white text-sm font-semibold">
         ← Queue
       </div>
       {/* Swipeable content */}
