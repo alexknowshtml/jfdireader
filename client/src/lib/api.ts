@@ -140,6 +140,31 @@ export async function searchItems(query: string, limit = 30): Promise<SearchResu
   return fetchJSON(`/items/search?${params}`);
 }
 
+// Settings
+export interface EmailSettings {
+  enabled: boolean;
+  label: string;
+  gogcliPath: string;
+  pollIntervalMinutes: number;
+  lastPolledAt: string | null;
+  lastError: string | null;
+}
+
+export async function getSettings(): Promise<Record<string, string | null>> {
+  return fetchJSON("/settings");
+}
+
+export async function updateSettings(settings: Record<string, string | null>): Promise<Record<string, string | null>> {
+  return fetchJSON("/settings", {
+    method: "PATCH",
+    body: JSON.stringify(settings),
+  });
+}
+
+export async function getEmailStatus(): Promise<EmailSettings> {
+  return fetchJSON("/settings/email/status");
+}
+
 export async function recordSignal(id: number, signal: {
   scrollDepth?: number;
   dwellTimeSeconds?: number;

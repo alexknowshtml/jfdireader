@@ -5,7 +5,9 @@ import { serveStatic } from "hono/bun";
 import { feedsRouter } from "./routes/feeds";
 import { itemsRouter } from "./routes/items";
 import { foldersRouter } from "./routes/folders";
+import { settingsRouter } from "./routes/settings";
 import { startPolling } from "./services/poller";
+import { startEmailPolling } from "./services/email-poller";
 import { resolve } from "path";
 
 const app = new Hono();
@@ -25,6 +27,7 @@ app.get("/health", (c) => c.json({ status: "ok", version: "0.1.0" }));
 app.route("/api/feeds", feedsRouter);
 app.route("/api/items", itemsRouter);
 app.route("/api/folders", foldersRouter);
+app.route("/api/settings", settingsRouter);
 
 // Serve built client static files
 const clientDist = resolve(import.meta.dir, "../../client/dist");
@@ -34,6 +37,9 @@ app.get("/*", serveStatic({ root: clientDist, path: "/index.html" }));
 
 // Start background feed polling (every 5 minutes)
 startPolling(5 * 60 * 1000);
+
+// Start email polling (every 5 minutes)
+startEmailPolling(5 * 60 * 1000);
 
 const port = parseInt(process.env.PORT || "3100");
 console.log(`JFDI Reader server running on http://localhost:${port}`);

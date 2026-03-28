@@ -7,6 +7,7 @@ import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
 import { FeedSettingsModal } from "@/components/feed/FeedSettingsModal";
 import { OpmlImportModal } from "@/components/feed/OpmlImportModal";
 import { UndoToast } from "@/components/triage/UndoToast";
+import { SettingsPage } from "@/components/settings/SettingsPage";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import {
   Command,
@@ -103,6 +104,7 @@ function ReaderApp() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsFeedId, setSettingsFeedId] = useState<number | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const lastAction = useRef<{ itemId: number; action: string; snapshot: FeedItemWithState[] | undefined; queryKey: any[] } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -372,6 +374,7 @@ function ReaderApp() {
           totalQueued={totalQueued}
           onFeedSettings={(id) => { setSettingsFeedId(id); setSidebarOpen(false); }}
           onImportOpml={() => { setImportOpen(true); setSidebarOpen(false); }}
+          onSettings={() => { setShowSettings(true); setSidebarOpen(false); }}
         />
       </div>
 
@@ -423,7 +426,9 @@ function ReaderApp() {
         </div>
 
         {/* Main content area */}
-        {viewMode === "reading" && currentItem ? (
+        {showSettings ? (
+          <SettingsPage onClose={() => setShowSettings(false)} />
+        ) : viewMode === "reading" && currentItem ? (
           <ReadingPane
             item={currentItem}
             onClose={() => setViewMode("triage")}

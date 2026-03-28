@@ -26,6 +26,7 @@ interface SidebarProps {
   onSelectView: (view: string) => void;
   onFeedSettings: (feedId: number) => void;
   onImportOpml: () => void;
+  onSettings: () => void;
   totalUnread: number;
   totalQueued: number;
 }
@@ -41,6 +42,7 @@ export function Sidebar({
   totalQueued,
   onFeedSettings,
   onImportOpml,
+  onSettings,
 }: SidebarProps) {
   return (
     <div className="w-64 border-r border-border/60 bg-sidebar flex flex-col h-full flex-shrink-0">
@@ -171,6 +173,15 @@ export function Sidebar({
           </button>
         </div>
       </ScrollArea>
+      <Separator />
+      <div className="p-2">
+        <button
+          onClick={onSettings}
+          className="w-full text-left px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-2"
+        >
+          <span className="text-base leading-none">⚙</span> Settings
+        </button>
+      </div>
     </div>
   );
 }

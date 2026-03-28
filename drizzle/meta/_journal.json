@@ -15,6 +15,20 @@
       "when": 1774622838795,
       "tag": "0001_naive_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774705474152,
+      "tag": "0002_petite_sunspot",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1774705499854,
+      "tag": "0003_ambiguous_magneto",
+      "breakpoints": true
     }
   ]
 }

@@ -15,6 +15,8 @@ export const feeds = sqliteTable("feeds", {
   errorCount: integer("error_count").default(0),
   lastError: text("last_error"),
   createdAt: text("created_at").notNull(),
+  sourceType: text("source_type").default("rss"),  // rss | email
+  senderEmail: text("sender_email"),  // for email feeds: the sender's email address
 });
 
 export const folders = sqliteTable("folders", {
@@ -105,6 +107,11 @@ export const feedSettings = sqliteTable("feed_settings", {
   relevanceBlurbsEnabled: integer("relevance_blurbs_enabled", { mode: "boolean" }).default(false),
   digestMode: text("digest_mode").default("realtime"),  // realtime | daily | filtered
   autoMarkReadDays: integer("auto_mark_read_days"),
+});
+
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value"),
 });
 
 export const tags = sqliteTable("tags", {
