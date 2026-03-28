@@ -1,6 +1,8 @@
 import { db } from "../db";
 import { feeds, items, appSettings } from "../db/schema";
 import { eq, and } from "drizzle-orm";
+import { Readability } from "@mozilla/readability";
+import { parseHTML } from "linkedom";
 
 interface GmailMessage {
   id: string;
@@ -29,6 +31,133 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function cleanEmailHTML(html: string, title?: string): string {
+  if (!html) return "";
+
+  // If it's not HTML, do basic plaintext cleanup
+  if (!/<[a-z][\s\S]*>/i.test(html)) {
+    return cleanPlaintext(html);
+  }
+
+  try {
+    const { document } = parseHTML(html);
+
+    // Step 1: Remove scripts, styles, and comments
+    document.querySelectorAll("script, style, noscript").forEach((el: any) => el.remove());
+
+    // Step 2: Remove email-specific cruft
+    const selectorsToRemove = [
+      'a[href*="unsubscribe"]',
+      'a[href*="manage-preferences"]',
+      'a[href*="subscription"]',
+      'a[href*="view-in-browser"]',
+      'a[href*="webversion"]',
+      'img[width="1"]',
+      'img[height="1"]',
+      'img[src*="open.convertkit"]',
+      'img[src*="tracking"]',
+      'img[src*="beacon"]',
+    ];
+
+    for (const selector of selectorsToRemove) {
+      try {
+        document.querySelectorAll(selector).forEach((el: any) => {
+          const parent = el.parentElement;
+          if (parent && parent.children.length === 1 && parent.textContent?.trim() === el.textContent?.trim()) {
+            parent.remove();
+          } else {
+            el.remove();
+          }
+        });
+      } catch { /* selector may not be supported */ }
+    }
+
+    // Step 3: Flatten email layout tables
+    // Email newsletters use tables for layout (role="presentation" or just structural).
+    // Replace layout tables with their inner content so Readability sees clean HTML.
+    flattenLayoutTables(document);
+
+    // Step 4: Run Readability on the flattened content
+    const reader = new Readability(document as any, {
+      charThreshold: 0,
+    });
+    const article = reader.parse();
+
+    if (article?.content) {
+      // Clean up any remaining table artifacts
+      return article.content
+        .replace(/<table[^>]*role="presentation"[^>]*>/gi, "<div>")
+        .replace(/<\/table>/gi, "</div>")
+        .replace(/<t(?:body|head|foot|r|d|h)[^>]*>/gi, "")
+        .replace(/<\/t(?:body|head|foot|r|d|h)>/gi, "");
+    }
+  } catch (err) {
+    console.error("[email-poller] Readability failed, using fallback:", err);
+  }
+
+  // Fallback: strip scripts/styles, flatten tables, return
+  return stripEmailLayoutFromHTML(html);
+}
+
+function flattenLayoutTables(document: any): void {
+  // Process tables from innermost to outermost
+  let tables = document.querySelectorAll('table');
+  let passes = 0;
+  const maxPasses = 10;
+
+  while (tables.length > 0 && passes < maxPasses) {
+    let changed = false;
+    tables = document.querySelectorAll('table');
+
+    for (const table of Array.from(tables) as any[]) {
+      // Skip tables that look like actual data tables (multiple rows with data)
+      const rows = table.querySelectorAll('tr');
+      const isLayoutTable =
+        table.getAttribute('role') === 'presentation' ||
+        table.getAttribute('role') === 'none' ||
+        rows.length <= 2 ||
+        // Single-column tables are almost always layout
+        table.querySelectorAll('td').length <= rows.length;
+
+      if (isLayoutTable) {
+        // Replace table with a div containing just the cell contents
+        const div = document.createElement('div');
+        const cells = table.querySelectorAll('td, th');
+        for (const cell of Array.from(cells) as any[]) {
+          div.innerHTML += cell.innerHTML;
+        }
+        table.replaceWith(div);
+        changed = true;
+      }
+    }
+
+    passes++;
+    if (!changed) break;
+  }
+}
+
+function stripEmailLayoutFromHTML(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<table[^>]*>/gi, "<div>")
+    .replace(/<\/table>/gi, "</div>")
+    .replace(/<t(?:body|head|foot|r|d|h)[^>]*>/gi, "")
+    .replace(/<\/t(?:body|head|foot|r|d|h)>/gi, "");
+}
+
+function cleanPlaintext(text: string): string {
+  return text
+    // Remove tracking URLs (long encoded URLs from email services)
+    .replace(/\(\s*https?:\/\/[^\s)]*(?:click\.|convertkit|mailchimp|campaign-archive)[^\s)]*\s*\)/g, "")
+    // Remove dashed separators
+    .replace(/^-{5,}$/gm, "")
+    // Collapse multiple blank lines
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 async function getSetting(key: string): Promise<string | null> {
   const row = await db.select().from(appSettings).where(eq(appSettings.key, key)).limit(1);
   return row[0]?.value ?? null;
@@ -48,6 +177,7 @@ async function fetchGmailMessages(gogcliPath: string, label: string, maxResults 
     `label:${label}`,
     "--max", String(maxResults),
     "-j", "--results-only", "--include-body",
+    "--body-format", "html",
   ], {
     stdout: "pipe",
     stderr: "pipe",
@@ -157,16 +287,19 @@ export async function pollEmails(): Promise<{ polled: number; newItems: number; 
       // Parse date
       const publishedAt = msg.date ? new Date(msg.date).toISOString() : new Date().toISOString();
 
+      // Clean email HTML into readable article content
+      const cleanedContent = cleanEmailHTML(msg.body || "", msg.subject);
+
       // Insert item
       await db.insert(items).values({
         feedId,
         guid,
         title: msg.subject || "(no subject)",
         author: name,
-        content: msg.body || "",
+        content: cleanedContent,
         publishedAt,
         fetchedAt: new Date().toISOString(),
-        wordCount: msg.body ? countWords(msg.body) : 0,
+        wordCount: cleanedContent ? countWords(cleanedContent.replace(/<[^>]*>/g, "")) : 0,
       });
 
       newItems++;
