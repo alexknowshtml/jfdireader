@@ -132,6 +132,34 @@ itemsRouter.get("/search", async (c) => {
   }
 });
 
+// Reading queue endpoint (must be before /:id to avoid route conflict)
+itemsRouter.get("/queue", async (c) => {
+  const result = await db
+    .select({
+      id: schema.items.id,
+      feedId: schema.items.feedId,
+      url: schema.items.url,
+      title: schema.items.title,
+      author: schema.items.author,
+      content: schema.items.content,
+      summary: schema.items.summary,
+      publishedAt: schema.items.publishedAt,
+      wordCount: schema.items.wordCount,
+      isPinned: schema.itemState.isPinned,
+      queuedAt: schema.itemState.queuedAt,
+      queuePosition: schema.itemState.queuePosition,
+      feedTitle: schema.feeds.title,
+      feedIconUrl: schema.feeds.iconUrl,
+    })
+    .from(schema.items)
+    .innerJoin(schema.itemState, eq(schema.items.id, schema.itemState.itemId))
+    .innerJoin(schema.feeds, eq(schema.items.feedId, schema.feeds.id))
+    .where(sql`${schema.itemState.triageAction} IN ('queue', 'pin') AND ${schema.itemState.isRead} = 0`)
+    .orderBy(desc(schema.itemState.isPinned), schema.itemState.queuePosition);
+
+  return c.json(result);
+});
+
 // Get a single item with full content (for reading mode)
 itemsRouter.get("/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
@@ -327,33 +355,6 @@ itemsRouter.post("/mark-all-read", async (c) => {
   return c.json({ ok: true });
 });
 
-// Reading queue endpoint
-itemsRouter.get("/queue", async (c) => {
-  const result = await db
-    .select({
-      id: schema.items.id,
-      feedId: schema.items.feedId,
-      url: schema.items.url,
-      title: schema.items.title,
-      author: schema.items.author,
-      content: schema.items.content,
-      summary: schema.items.summary,
-      publishedAt: schema.items.publishedAt,
-      wordCount: schema.items.wordCount,
-      isPinned: schema.itemState.isPinned,
-      queuedAt: schema.itemState.queuedAt,
-      queuePosition: schema.itemState.queuePosition,
-      feedTitle: schema.feeds.title,
-      feedIconUrl: schema.feeds.iconUrl,
-    })
-    .from(schema.items)
-    .innerJoin(schema.itemState, eq(schema.items.id, schema.itemState.itemId))
-    .innerJoin(schema.feeds, eq(schema.items.feedId, schema.feeds.id))
-    .where(sql`${schema.itemState.triageAction} IN ('queue', 'pin') AND ${schema.itemState.isRead} = 0`)
-    .orderBy(desc(schema.itemState.isPinned), schema.itemState.queuePosition);
-
-  return c.json(result);
-});
 
 /**
  * Interleave items round-robin across feeds.

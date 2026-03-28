@@ -321,7 +321,7 @@ function ReaderApp() {
 
       {/* Sidebar - always visible on desktop, slide-over on mobile */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-in-out md:relative md:translate-x-0
+        fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-in-out md:relative md:translate-x-0 bg-sidebar
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <Sidebar
