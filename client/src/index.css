@@ -71,7 +71,15 @@ html.standalone body {
 
 .safe-area-bottom {
   height: env(safe-area-inset-bottom, 0px);
-  min-height: 20px;
+}
+
+@media (display-mode: standalone) {
+  .safe-area-bottom {
+    height: 0;
+  }
+}
+html.standalone .safe-area-bottom {
+  height: 0;
 }
 
 @theme inline {
