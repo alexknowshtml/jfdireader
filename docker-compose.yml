@@ -1,0 +1,13 @@
+services:
+  reader:
+    build: .
+    ports:
+      - "3100:3100"
+    volumes:
+      - reader-data:/app/data
+    environment:
+      - PORT=3100
+    restart: unless-stopped
+
+volumes:
+  reader-data:
