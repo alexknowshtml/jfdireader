@@ -199,33 +199,33 @@ function ReaderApp() {
     hapticLight();
     const ctx = optimisticTriage(currentItem.id, "archive");
     lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
-    api.triageItem(currentItem.id, "archive").catch(() => rollback(ctx));
-  }, [currentItem, optimisticTriage, rollback]);
+    api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+  }, [currentItem, optimisticTriage, rollback, qc]);
 
   const handleReadNow = useCallback(() => {
     if (!currentItem) return;
     const ctx = optimisticTriage(currentItem.id, "read_now");
     lastAction.current = { itemId: currentItem.id, action: "read_now", snapshot: ctx.previous, queryKey: ctx.queryKey };
     setViewMode("reading");
-    api.triageItem(currentItem.id, "read_now");
+    api.triageItem(currentItem.id, "read_now").then(() => qc.invalidateQueries({ queryKey: ["feeds"] }));
     api.markRead(currentItem.id, true);
-  }, [currentItem, optimisticTriage]);
+  }, [currentItem, optimisticTriage, qc]);
 
   const handleQueue = useCallback(() => {
     if (!currentItem) return;
     hapticLight();
     const ctx = optimisticTriage(currentItem.id, "queue");
     lastAction.current = { itemId: currentItem.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
-    api.triageItem(currentItem.id, "queue").catch(() => rollback(ctx));
-  }, [currentItem, optimisticTriage, rollback]);
+    api.triageItem(currentItem.id, "queue").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+  }, [currentItem, optimisticTriage, rollback, qc]);
 
   const handlePin = useCallback(() => {
     if (!currentItem) return;
     hapticLight();
     const ctx = optimisticTriage(currentItem.id, "pin");
     lastAction.current = { itemId: currentItem.id, action: "pin", snapshot: ctx.previous, queryKey: ctx.queryKey };
-    api.triageItem(currentItem.id, "pin").catch(() => rollback(ctx));
-  }, [currentItem, optimisticTriage, rollback]);
+    api.triageItem(currentItem.id, "pin").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+  }, [currentItem, optimisticTriage, rollback, qc]);
 
   const handleUndo = useCallback(() => {
     if (!lastAction.current) return;
@@ -239,7 +239,7 @@ function ReaderApp() {
     // Fire API call in background
     const id = lastAction.current.itemId;
     lastAction.current = null;
-    api.undoTriage(id);
+    api.undoTriage(id).then(() => qc.invalidateQueries({ queryKey: ["feeds"] }));
   }, [qc]);
 
   const handleStar = useCallback(async () => {
@@ -414,7 +414,7 @@ function ReaderApp() {
                 const snapshot = qc.getQueryData<FeedItemWithState[]>(queryKey);
                 lastAction.current = { itemId: item.id, action: "read_now", snapshot, queryKey };
                 setViewMode("reading");
-                api.triageItem(item.id, "read_now");
+                api.triageItem(item.id, "read_now").then(() => qc.invalidateQueries({ queryKey: ["feeds"] }));
                 api.markRead(item.id, true);
               }
             }}
@@ -424,7 +424,7 @@ function ReaderApp() {
               hapticLight();
               const ctx = optimisticTriage(item.id, "archive");
               lastAction.current = { itemId: item.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
-              api.triageItem(item.id, "archive").catch(() => rollback(ctx));
+              api.triageItem(item.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
             }}
             onQueue={(i) => {
               const item = items[i];
@@ -432,7 +432,7 @@ function ReaderApp() {
               hapticLight();
               const ctx = optimisticTriage(item.id, "queue");
               lastAction.current = { itemId: item.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
-              api.triageItem(item.id, "queue").catch(() => rollback(ctx));
+              api.triageItem(item.id, "queue").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
             }}
             onRefresh={handleRefresh}
             viewMode="expanded"
