@@ -14,9 +14,10 @@ interface UseSwipeOptions {
   onSwipeRight?: () => void; // archive
   onSwipeLeft?: () => void;  // queue
   ref: React.RefObject<HTMLDivElement | null>;
+  onDirectionChange?: (dir: "left" | "right" | null) => void;
 }
 
-export function useSwipe({ onSwipeRight, onSwipeLeft, ref }: UseSwipeOptions): SwipeHandlers {
+export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange }: UseSwipeOptions): SwipeHandlers {
   const startX = useRef(0);
   const startY = useRef(0);
   const startTime = useRef(0);
@@ -37,8 +38,11 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref }: UseSwipeOptions): S
 
     if (ref.current) {
       ref.current.style.transition = "none";
+      ref.current.style.transform = "";
+      ref.current.style.opacity = "";
     }
-  }, [ref]);
+    onDirectionChange?.(null);
+  }, [ref, onDirectionChange]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (dismissed.current) return;
@@ -64,6 +68,7 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref }: UseSwipeOptions): S
     }
 
     currentX.current = dx;
+    onDirectionChange?.(dx > 0 ? "right" : "left");
 
     // Resist overswipe with diminishing returns past threshold
     const capped = Math.sign(dx) * Math.min(Math.abs(dx), THRESHOLD * 2.5);
@@ -77,7 +82,7 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref }: UseSwipeOptions): S
       triggered.current = true;
       hapticLight();
     }
-  }, [ref]);
+  }, [ref, onDirectionChange]);
 
   const onTouchEnd = useCallback(() => {
     if (dismissed.current || !locked.current) {
@@ -117,8 +122,9 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref }: UseSwipeOptions): S
         ref.current.style.transition = "transform 200ms ease-out";
         ref.current.style.transform = "";
       }
+      onDirectionChange?.(null);
     }
-  }, [onSwipeRight, onSwipeLeft, ref]);
+  }, [onSwipeRight, onSwipeLeft, ref, onDirectionChange]);
 
   return { onTouchStart, onTouchMove, onTouchEnd };
 }

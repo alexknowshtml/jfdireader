@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSwipe } from "@/hooks/useSwipe";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,7 @@ export function ArticleList({
               }}
             >
               <SwipeableRow
+                key={item.id}
                 onSwipeRight={onArchive ? () => onArchive(idx) : undefined}
                 onSwipeLeft={onQueue ? () => onQueue(idx) : undefined}
               >
@@ -214,18 +215,29 @@ function SwipeableRow({
   children: React.ReactNode;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const swipe = useSwipe({ onSwipeRight, onSwipeLeft, ref: contentRef });
+  const [direction, setDirection] = useState<"left" | "right" | null>(null);
+
+  const swipe = useSwipe({
+    onSwipeRight,
+    onSwipeLeft,
+    ref: contentRef,
+    onDirectionChange: setDirection,
+  });
 
   return (
     <div className="relative overflow-hidden">
       {/* Archive reveal (swipe right) */}
-      <div className="absolute inset-0 flex items-center justify-start px-6 bg-emerald-500 text-white text-sm font-semibold">
-        Archive →
-      </div>
+      {direction === "right" && (
+        <div className="absolute inset-0 flex items-center justify-start px-6 bg-emerald-500 text-white text-sm font-semibold">
+          Archive →
+        </div>
+      )}
       {/* Queue reveal (swipe left) */}
-      <div className="absolute inset-0 flex items-center justify-end px-6 bg-purple-600 text-white text-sm font-semibold">
-        ← Queue
-      </div>
+      {direction === "left" && (
+        <div className="absolute inset-0 flex items-center justify-end px-6 bg-purple-600 text-white text-sm font-semibold">
+          ← Queue
+        </div>
+      )}
       {/* Swipeable content */}
       <div
         ref={contentRef}
