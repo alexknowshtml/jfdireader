@@ -530,12 +530,13 @@ function SearchPalette({ open, onOpenChange, onSelect }: { open: boolean; onOpen
         <DialogTitle>Search</DialogTitle>
         <DialogDescription>Search all articles</DialogDescription>
       </DialogHeader>
-      <DialogContent className="top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0" showCloseButton={false}>
+      <DialogContent className="top-[15%] sm:top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0" showCloseButton={false}>
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search all articles..."
             value={query}
             onValueChange={setQuery}
+            autoFocus
           />
           <CommandList>
             {!query.trim() && <CommandEmpty>Type to search across all articles.</CommandEmpty>}
