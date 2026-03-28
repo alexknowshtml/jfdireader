@@ -58,20 +58,20 @@
   }
 }
 
-.safe-area-bottom {
-  height: env(safe-area-inset-bottom, 0px);
-}
-
-/* iOS standalone web apps don't report env(safe-area-inset-bottom) reliably */
+/* iOS standalone: viewport doesn't reach physical screen bottom.
+   Body background fills the gap below the fixed app container. */
 @media (display-mode: standalone) {
-  .safe-area-bottom {
-    min-height: 34px;
+  body {
+    background: var(--muted) !important;
   }
 }
+html.standalone body {
+  background: var(--muted) !important;
+}
 
-/* Fallback for iOS apple-mobile-web-app-capable (navigator.standalone = true) */
-html.standalone .safe-area-bottom {
-  min-height: 34px;
+.safe-area-bottom {
+  height: env(safe-area-inset-bottom, 0px);
+  min-height: 20px;
 }
 
 @theme inline {
