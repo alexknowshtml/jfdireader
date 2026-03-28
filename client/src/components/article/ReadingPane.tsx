@@ -29,7 +29,12 @@ export function ReadingPane({ item, onArchive, onQueue }: ReadingPaneProps) {
 
   // Scroll to top when navigating to a new item
   useEffect(() => {
-    scrollContainerRef.current?.scrollTo(0, 0);
+    // Use rAF to ensure the DOM has updated before scrolling
+    requestAnimationFrame(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    });
   }, [item.id]);
   const [swipeDir, setSwipeDir] = useState<"left" | "right" | null>(null);
 
