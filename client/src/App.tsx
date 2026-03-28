@@ -488,6 +488,12 @@ function ReaderApp() {
         {viewMode === "reading" && currentItem && (
           <div className="border-t bg-muted/30 flex items-center justify-between px-4 gap-1 flex-shrink-0 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <button
+              onClick={() => setViewMode("triage")}
+              className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
+            >
+              ← Back
+            </button>
+            <button
               onClick={handleStar}
               className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
             >
@@ -498,12 +504,6 @@ function ReaderApp() {
               className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isPinned ? "text-purple-400" : "text-muted-foreground"}`}
             >
               📌
-            </button>
-            <button
-              onClick={() => setViewMode("triage")}
-              className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
-            >
-              ← Back
             </button>
             <button
               onClick={() => {
