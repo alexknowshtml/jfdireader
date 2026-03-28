@@ -182,16 +182,24 @@
 
 ## Remaining Phase 1
 
-### 28. OPML Import UI
-- File upload component
-- Parse OPML, show preview of feeds to import
-- Folder mapping from OPML categories
-- Backend endpoint already exists (`POST /api/feeds/import/opml`)
+### 28. OPML Import UI ✅
+- Drag-and-drop file upload with click-to-browse fallback
+- Client-side OPML parsing via feedsmith for preview before import
+- Feeds grouped by OPML folder structure in preview
+- Shows imported/skipped/errors results after import
+- "+ Import OPML" button in sidebar
+- `7a8dd8e` Add OPML import UI with drag-and-drop, preview, and folder grouping
 
-### 29. Full-Text Search (FTS5)
-- SQLite FTS5 virtual table for items
-- Search by title, content, author
-- Wire into command palette (/) and search bar
+### 29. Full-Text Search (FTS5) ✅
+- SQLite FTS5 virtual table with porter stemming + unicode61 tokenizer
+- Auto-sync via INSERT/UPDATE/DELETE triggers
+- Index rebuild on server startup (idempotent)
+- Search API at `GET /api/items/search?q=...` with `<mark>` highlighted snippets
+- Command palette (`/`) now queries FTS5 server-side with 200ms debounce
+- Search icon in toolbar for mobile access, autofocus, 16px font to prevent iOS zoom
+- `2fd0f34` Add FTS5 full-text search with highlighted snippets
+- `265d018` Add search icon button to toolbar for mobile access
+- `60204bb` Make search mobile-friendly: autofocus, no zoom, better positioning
 
 ### 30. Newsletter Email Ingestion
 - Dedicated email address per instance
@@ -219,8 +227,8 @@
 ## Session Stats
 
 - **Date:** 2026-03-27
-- **Commits:** 39
-- **Milestones completed:** 27 of 33
+- **Commits:** 44
+- **Milestones completed:** 29 of 33
 - **Feeds:** 13 active, ~281 items (after City Cast cleanup)
 
 ## Tech Stack

@@ -45,7 +45,7 @@ Press `?` to see all shortcuts. Press `/` to search.
 
 ## What's next
 
-Phase 1 remaining work: OPML import UI, full-text search (FTS5), newsletter email ingestion, reading queue polish, PWA offline support, Docker container.
+Phase 1 remaining work: newsletter email ingestion, reading queue polish, PWA offline support, Docker container.
 
 Phase 2 adds universal inputs (Bluesky, YouTube, Reddit, Discord/Slack) and an AI layer for relevance blurbs - opt-in per feed, BYO API key.
 
@@ -86,7 +86,7 @@ See `server/src/routes/` for API details.
 
 ## Status
 
-**Phase 1: 25 of 31 milestones complete.**
+**Phase 1: 29 of 33 milestones complete.**
 
 See [.claude/plans/2026-03-27-phase1-build.md](.claude/plans/2026-03-27-phase1-build.md) for detailed progress.
 
