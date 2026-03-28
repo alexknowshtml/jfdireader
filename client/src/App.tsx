@@ -340,7 +340,7 @@ function ReaderApp() {
   }
 
   return (
-    <div className="flex h-svh bg-background text-foreground">
+    <div className="flex fixed inset-0 bg-background text-foreground">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
