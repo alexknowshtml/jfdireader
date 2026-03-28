@@ -68,7 +68,7 @@ export async function getItemContent(id: number): Promise<{ content: string | nu
 }
 
 // Triage actions
-export async function triageItem(id: number, action: "skip" | "read_now" | "queue" | "pin") {
+export async function triageItem(id: number, action: "archive" | "read_now" | "queue" | "pin") {
   return fetchJSON(`/items/${id}/triage`, {
     method: "PATCH",
     body: JSON.stringify({ action }),

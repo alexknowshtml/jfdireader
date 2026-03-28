@@ -1,7 +1,7 @@
 // Shared types between server and client
 
 export type EngagementTier = "unseen" | "seen" | "decided" | "consumed" | "acted_on";
-export type TriageAction = "skip" | "read_now" | "queue" | "pin";
+export type TriageAction = "archive" | "read_now" | "queue" | "pin";
 export type DigestMode = "realtime" | "daily" | "filtered";
 
 export interface Feed {

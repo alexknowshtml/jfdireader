@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface TriageBarProps {
   itemTitle: string | null;
   isStarred: boolean;
-  onSkip: () => void;
+  onArchive: () => void;
   onQueue: () => void;
   onPin: () => void;
   onStar: () => void;
@@ -11,7 +11,7 @@ interface TriageBarProps {
 
 export function TriageBar({
   isStarred,
-  onSkip,
+  onArchive,
   onQueue,
   onPin,
   onStar,
@@ -20,9 +20,9 @@ export function TriageBar({
     <div className="border-t bg-muted/30 px-4 pt-2.5 pb-2 flex-shrink-0">
       <div className="flex items-center justify-center gap-2">
         <TriageButton
-          label="Skip"
+          label="Archive"
           shortcut="s"
-          onClick={onSkip}
+          onClick={onArchive}
           variant="muted"
         />
         <TriageButton

@@ -157,7 +157,7 @@ function ReaderApp() {
     const previous = qc.getQueryData<FeedItemWithState[]>(queryKey);
 
     if (action !== "read_now") {
-      // Optimistically remove from list (skip/queue/pin remove from unread view)
+      // Optimistically remove from list (archive/queue/pin remove from unread view)
       qc.setQueryData<FeedItemWithState[]>(queryKey, (old) =>
         old ? old.filter((item) => item.id !== itemId) : []
       );
@@ -184,11 +184,11 @@ function ReaderApp() {
     qc.invalidateQueries({ queryKey: ["feeds"] });
   }, [qc]);
 
-  const handleSkip = useCallback(() => {
+  const handleArchive = useCallback(() => {
     if (!currentItem) return;
-    const ctx = optimisticTriage(currentItem.id, "skip");
-    lastAction.current = { itemId: currentItem.id, action: "skip", snapshot: ctx.previous, queryKey: ctx.queryKey };
-    api.triageItem(currentItem.id, "skip").catch(() => rollback(ctx));
+    const ctx = optimisticTriage(currentItem.id, "archive");
+    lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
+    api.triageItem(currentItem.id, "archive").catch(() => rollback(ctx));
   }, [currentItem, optimisticTriage, rollback]);
 
   const handleReadNow = useCallback(() => {
@@ -265,7 +265,7 @@ function ReaderApp() {
         handleReadNow();
       }
     },
-    onSkip: handleSkip,
+    onArchive: handleArchive,
     onQueue: handleQueue,
     onPin: handlePin,
     onStar: handleStar,
@@ -401,7 +401,7 @@ function ReaderApp() {
           <TriageBar
             itemTitle={currentItem.title}
             isStarred={currentItem.isStarred}
-            onSkip={handleSkip}
+            onArchive={handleArchive}
             onQueue={handleQueue}
             onPin={handlePin}
             onStar={handleStar}
@@ -420,10 +420,10 @@ function ReaderApp() {
             </button>
             <div className="flex-1" />
             <button
-              onClick={handleSkip}
+              onClick={handleArchive}
               className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
-              Skip <kbd className="hidden md:inline text-[10px] opacity-60">s</kbd>
+              Archive <kbd className="hidden md:inline text-[10px] opacity-60">s</kbd>
             </button>
             <button
               onClick={handleQueue}

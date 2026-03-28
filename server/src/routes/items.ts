@@ -57,7 +57,7 @@ itemsRouter.get("/", async (c) => {
     conditions.push(eq(schema.itemState.isStarred, true));
   }
   if (unread === "true") {
-    // Inbox = untriaged items only (not read, not queued, not skipped)
+    // Inbox = untriaged items only (not read, not queued, not archived)
     conditions.push(
       sql`(${schema.itemState.isRead} IS NULL OR ${schema.itemState.isRead} = 0)
         AND (${schema.itemState.triageAction} IS NULL)`
@@ -106,14 +106,14 @@ itemsRouter.get("/:id", async (c) => {
   return c.json(item);
 });
 
-// Triage an item (skip / read_now / queue / pin)
+// Triage an item (archive / read_now / queue / pin)
 itemsRouter.patch("/:id/triage", async (c) => {
   const id = parseInt(c.req.param("id"));
-  const { action } = await c.req.json<{ action: "skip" | "read_now" | "queue" | "pin" }>();
+  const { action } = await c.req.json<{ action: "archive" | "read_now" | "queue" | "pin" }>();
   const now = new Date().toISOString();
 
   const tierMap = {
-    skip: "decided",
+    archive: "decided",
     read_now: "consumed",
     queue: "decided",
     pin: "decided",
@@ -126,7 +126,7 @@ itemsRouter.patch("/:id/triage", async (c) => {
     engagementTier: tierMap[action],
   };
 
-  if (action === "skip") {
+  if (action === "archive") {
     values.isRead = true;
     values.readAt = now;
   }
@@ -267,7 +267,7 @@ itemsRouter.post("/mark-all-read", async (c) => {
   if (feedId) {
     await db.run(sql`
       INSERT OR REPLACE INTO item_state (item_id, is_read, read_at, engagement_tier, triage_action, triage_at)
-      SELECT i.id, 1, ${now}, 'decided', 'skip', ${now}
+      SELECT i.id, 1, ${now}, 'decided', 'archive', ${now}
       FROM items i
       LEFT JOIN item_state s ON s.item_id = i.id
       WHERE i.feed_id = ${feedId} AND (s.is_read IS NULL OR s.is_read = 0)
@@ -275,7 +275,7 @@ itemsRouter.post("/mark-all-read", async (c) => {
   } else {
     await db.run(sql`
       INSERT OR REPLACE INTO item_state (item_id, is_read, read_at, engagement_tier, triage_action, triage_at)
-      SELECT i.id, 1, ${now}, 'decided', 'skip', ${now}
+      SELECT i.id, 1, ${now}, 'decided', 'archive', ${now}
       FROM items i
       LEFT JOIN item_state s ON s.item_id = i.id
       WHERE s.is_read IS NULL OR s.is_read = 0

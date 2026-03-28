@@ -70,7 +70,7 @@ export const itemState = sqliteTable("item_state", {
   // Engagement tier: unseen | seen | decided | consumed | acted_on
   engagementTier: text("engagement_tier").default("unseen"),
 
-  // Triage action: skip | read_now | queue | pin
+  // Triage action: archive | read_now | queue | pin
   triageAction: text("triage_action"),
   triageAt: text("triage_at"),
 
