@@ -1,8 +1,8 @@
 import { useRef, useCallback } from "react";
 import { hapticLight } from "@/lib/haptics";
 
-const THRESHOLD = 80; // px before action triggers
-const DISMISS_VELOCITY = 0.5; // px/ms — fast swipe triggers even below threshold
+const THRESHOLD = 100; // px before action triggers (raised from 80 to reduce accidental swipes)
+const DISMISS_VELOCITY = 0.6; // px/ms — fast swipe triggers even below threshold (raised from 0.5)
 
 interface SwipeHandlers {
   onTouchStart: (e: React.TouchEvent) => void;

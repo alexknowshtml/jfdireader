@@ -166,23 +166,32 @@ function ReaderApp() {
     // Snapshot current cache for rollback
     const previous = qc.getQueryData<FeedItemWithState[]>(queryKey);
 
-    if (action !== "read_now") {
-      // Optimistically remove from list (archive/queue/pin remove from unread view)
+    if (action !== "read_now" && action !== "pin") {
+      // Optimistically remove from list (archive/queue remove from view, pin stays visible)
       qc.setQueryData<FeedItemWithState[]>(queryKey, (old) =>
         old ? old.filter((item) => item.id !== itemId) : []
       );
     }
 
-    // Also optimistically decrement feed unread count
-    qc.setQueryData(["feeds"], (old: any) =>
-      old?.map((f: any) => {
-        const item = previous?.find((i) => i.id === itemId);
-        if (item && f.id === item.feedId && f.unreadCount > 0) {
-          return { ...f, unreadCount: f.unreadCount - 1 };
-        }
-        return f;
-      })
-    );
+    if (action === "pin") {
+      // Optimistically mark as pinned without removing
+      qc.setQueryData<FeedItemWithState[]>(queryKey, (old) =>
+        old?.map((item) => item.id === itemId ? { ...item, isPinned: true } : item) || []
+      );
+    }
+
+    // Also optimistically decrement feed unread count (not for pin — item stays)
+    if (action !== "pin") {
+      qc.setQueryData(["feeds"], (old: any) =>
+        old?.map((f: any) => {
+          const item = previous?.find((i) => i.id === itemId);
+          if (item && f.id === item.feedId && f.unreadCount > 0) {
+            return { ...f, unreadCount: f.unreadCount - 1 };
+          }
+          return f;
+        })
+      );
+    }
 
     return { previous, queryKey };
   }, [qc, selectedFeedId, sidebarView]);
