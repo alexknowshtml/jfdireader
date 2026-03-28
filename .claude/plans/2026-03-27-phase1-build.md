@@ -1,7 +1,7 @@
 # JFDI Reader - Phase 1 Build Plan
 
 **Started:** 2026-03-27
-**Status:** In Progress
+**Status:** Complete
 **Repo:** github.com/alexknowshtml/jfdireader
 
 ## Progress Screenshots
@@ -16,7 +16,7 @@
 
 ---
 
-## Completed (27 milestones)
+## Completed (36 milestones)
 
 ### 1. Scaffold ✅
 - Bun + Hono + React 19 + shadcn/ui + Drizzle + SQLite
@@ -178,10 +178,6 @@
 - Updated plan with milestones 22-27
 - `0f36661` Rewrite README with vision-first framing
 
----
-
-## Remaining Phase 1
-
 ### 28. OPML Import UI ✅
 - Drag-and-drop file upload with click-to-browse fallback
 - Client-side OPML parsing via feedsmith for preview before import
@@ -224,37 +220,61 @@
 - `b3a39c7` Fix queue sort order
 - `16d949d` Sort queue by article publish date
 
+### 32. iOS PWA Bottom Bar Fix ✅
+- Fixed bottom bar gap in PWA standalone mode
+- `bg-muted` (opaque background), `@media (display-mode: standalone)` to zero out safe-area-bottom
+- `.standalone` class detection via `navigator.standalone`
+- `328ca11`, `05ce39b`, `37422a1`, `d7d82dc`, `dbab5ec`
+
+### 33. PWA Setup ✅
+- vite-plugin-pwa with auto-updating Workbox service worker
+- Static assets precached, API calls use NetworkFirst with 1-hour cache
+- PNG icons generated from SVG (192, 512, apple-touch-icon)
+- `830ccf4` Add PWA support with service worker and manifest
+
+### 34. Docker Container ✅
+- Bun base image with Node.js for drizzle-kit migrations (better-sqlite3 native dep)
+- `docker-compose.yml` with named volume for SQLite persistence
+- Auto-runs migrations on container start
+- Smoke tested with podman build + health check
+- `fa56e28` Add Docker container with podman-compose support
+
+### 35. App Icon (Risograph J Logomark) ✅
+- Serif J with blue offset shadow and red dot accent (pretty-page design system)
+- Light mode: cream bg (#F7F3ED), ink J. Dark mode: ink bg (#1C1C1C), cream J
+- Adaptive `theme-color` meta tags for `prefers-color-scheme`
+- All PWA sizes generated (192, 512, apple-touch-icon) for both variants
+- `db3ad2e`, `39c45e6`
+
+### 36. Newsletter Email Ingestion ✅
+- Polls Gmail "- Feed" label via gogcli on 5-minute interval
+- Auto-creates email feeds per sender, deduplicates against RSS feeds by domain
+- `app_settings` key-value table for configuration
+- `sourceType` + `senderEmail` columns added to feeds table
+- Settings UI page accessible from sidebar gear icon
+- Configure: Gmail label, gogcli path, poll interval, enable/disable
+- `a56bacd` Add newsletter email ingestion via Gmail label polling
+
 ---
 
-## Remaining Phase 1
+## Phase 1 Complete 🎉
 
-### 32. Newsletter Email Ingestion
-- Dedicated email address per instance
-- Incoming emails → feed items
-- Sender auto-mapping to feeds
-- This unlocks the other 13 email-only sources from the starter list
-
-### 33. PWA Setup
-- Service worker for offline support
-- Web app manifest + install prompt
-
-### 34. Docker Container
-- Dockerfile (Bun runtime)
-- SQLite + cache volume mount
-- docker-compose.yml
-
----
+All 36 milestones shipped (original 34 + 2 bonus: PWA bottom bar fix, app icon).
 
 ## Session Stats
 
-- **Date:** 2026-03-27
-- **Commits:** 59
-- **Milestones completed:** 31 of 34
-- **Feeds:** 13 active, ~281 items (after City Cast cleanup)
+- **Dates:** 2026-03-27 to 2026-03-28
+- **Commits:** 66+
+- **Milestones completed:** 36 of 36
+- **Feeds:** 13 RSS active + email ingestion enabled
+- **Icon:** Risograph J logomark (light + dark adaptive)
 
 ## Tech Stack
 - **Backend:** Bun + Hono
 - **Frontend:** React 19 + Vite + Tailwind CSS + shadcn/ui
 - **Database:** SQLite + Drizzle ORM (via bun:sqlite)
 - **Feed parsing:** Feedsmith
+- **Email ingestion:** gogcli Gmail API polling
+- **PWA:** vite-plugin-pwa + Workbox
+- **Container:** Podman/Docker with docker-compose
 - **Port:** 3100
