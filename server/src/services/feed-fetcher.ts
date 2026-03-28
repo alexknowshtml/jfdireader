@@ -2,6 +2,12 @@ import { parseFeed } from "feedsmith";
 import { db, schema } from "../db";
 import { eq, sql } from "drizzle-orm";
 
+/** Convert any date string to ISO 8601 for consistent sorting */
+function normalizeDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? dateStr : d.toISOString();
+}
+
 interface FetchResult {
   feedId: number;
   title?: string;
@@ -216,7 +222,7 @@ export async function ingestItems(feedId: number, items: ParsedItem[], maxAgeDay
           author: item.author || null,
           content: item.content || null,
           summary: item.summary || null,
-          publishedAt: item.publishedAt || null,
+          publishedAt: item.publishedAt ? normalizeDate(item.publishedAt) : null,
           fetchedAt: new Date().toISOString(),
           thumbnailUrl: item.thumbnailUrl || null,
           wordCount,
