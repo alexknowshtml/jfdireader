@@ -8,7 +8,7 @@ const ALLOWED_EMAILS = (process.env.ALLOWED_EMAILS || "").split(",").map(e => e.
 const SESSION_MAX_AGE = 90 * 24 * 60 * 60; // 90 days in seconds
 const MAGIC_LINK_EXPIRY = 15 * 60 * 1000; // 15 minutes in ms
 const COOKIE_NAME = "jfdi_session";
-const FROM_EMAIL = "JFDI Reader <reader@indyhall.org>";
+const FROM_EMAIL = process.env.FROM_EMAIL || "JFDI Reader <noreply@indyhall.org>";
 
 const AUTH_SECRET = process.env.AUTH_SECRET || "";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
