@@ -7,6 +7,7 @@ import { TriageBar } from "@/components/triage/TriageBar";
 import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
 import { FeedSettingsModal } from "@/components/feed/FeedSettingsModal";
 import { OpmlImportModal } from "@/components/feed/OpmlImportModal";
+import { UndoToast } from "@/components/triage/UndoToast";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import {
   Command,
@@ -104,6 +105,17 @@ function ReaderApp() {
   const [settingsFeedId, setSettingsFeedId] = useState<number | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const lastAction = useRef<{ itemId: number; action: string; snapshot: FeedItemWithState[] | undefined; queryKey: any[] } | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((action: string) => {
+    const labels: Record<string, string> = {
+      archive: "Archived",
+      queue: "Queued",
+      read_done: "Read ✓",
+      pin: "Pinned",
+    };
+    setToastMessage(labels[action] || action);
+  }, []);
 
   // Fetch feeds for sidebar
   const { data: feeds = [] } = useQuery({
@@ -209,7 +221,8 @@ function ReaderApp() {
     const ctx = optimisticTriage(currentItem.id, "archive");
     lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
-  }, [currentItem, optimisticTriage, rollback, qc]);
+    showToast("archive");
+  }, [currentItem, optimisticTriage, rollback, qc, showToast]);
 
   const handleReadNow = useCallback(() => {
     if (!currentItem) return;
@@ -226,7 +239,8 @@ function ReaderApp() {
     const ctx = optimisticTriage(currentItem.id, "queue");
     lastAction.current = { itemId: currentItem.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "queue").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
-  }, [currentItem, optimisticTriage, rollback, qc]);
+    showToast("queue");
+  }, [currentItem, optimisticTriage, rollback, qc, showToast]);
 
   const handlePin = useCallback(() => {
     if (!currentItem) return;
@@ -234,7 +248,8 @@ function ReaderApp() {
     const ctx = optimisticTriage(currentItem.id, "pin");
     lastAction.current = { itemId: currentItem.id, action: "pin", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "pin").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
-  }, [currentItem, optimisticTriage, rollback, qc]);
+    showToast("pin");
+  }, [currentItem, optimisticTriage, rollback, qc, showToast]);
 
   const handleUndo = useCallback(() => {
     if (!lastAction.current) return;
@@ -434,6 +449,7 @@ function ReaderApp() {
               const ctx = optimisticTriage(item.id, "archive");
               lastAction.current = { itemId: item.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
               api.triageItem(item.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+              showToast("archive");
             }}
             onQueue={(i) => {
               const item = items[i];
@@ -442,6 +458,7 @@ function ReaderApp() {
               const ctx = optimisticTriage(item.id, "queue");
               lastAction.current = { itemId: item.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
               api.triageItem(item.id, "queue").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+              showToast("queue");
             }}
             onRefresh={handleRefresh}
             viewMode="expanded"
@@ -489,6 +506,7 @@ function ReaderApp() {
                 const ctx = optimisticTriage(currentItem.id, "archive");
                 lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
                 api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+                showToast("read_done");
                 // Advance to next item (selectedIndex stays the same, list shifts)
                 // If no more items, go back to triage view
                 if (items.length <= 1) {
@@ -534,6 +552,11 @@ function ReaderApp() {
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
       <FeedSettingsModal feedId={settingsFeedId} onClose={() => setSettingsFeedId(null)} />
       <OpmlImportModal open={importOpen} onClose={() => setImportOpen(false)} />
+      <UndoToast
+        message={toastMessage}
+        onUndo={handleUndo}
+        onDismiss={() => setToastMessage(null)}
+      />
     </div>
   );
 }
