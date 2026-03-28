@@ -413,6 +413,22 @@ function ReaderApp() {
                 api.markRead(item.id, true);
               }
             }}
+            onArchive={(i) => {
+              const item = items[i];
+              if (!item) return;
+              hapticLight();
+              const ctx = optimisticTriage(item.id, "archive");
+              lastAction.current = { itemId: item.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
+              api.triageItem(item.id, "archive").catch(() => rollback(ctx));
+            }}
+            onQueue={(i) => {
+              const item = items[i];
+              if (!item) return;
+              hapticLight();
+              const ctx = optimisticTriage(item.id, "queue");
+              lastAction.current = { itemId: item.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
+              api.triageItem(item.id, "queue").catch(() => rollback(ctx));
+            }}
             viewMode="expanded"
             isLoading={isFetching && items.length === 0}
           />

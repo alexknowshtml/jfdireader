@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useSwipe } from "@/hooks/useSwipe";
 import { cn } from "@/lib/utils";
 import type { FeedItemWithState } from "../../../../shared/types";
 
@@ -7,6 +8,8 @@ interface ArticleListProps {
   items: FeedItemWithState[];
   selectedIndex: number;
   onSelect: (index: number) => void;
+  onArchive?: (index: number) => void;
+  onQueue?: (index: number) => void;
   viewMode: "expanded" | "headlines";
   isLoading?: boolean;
 }
@@ -15,6 +18,8 @@ export function ArticleList({
   items,
   selectedIndex,
   onSelect,
+  onArchive,
+  onQueue,
   viewMode,
   isLoading,
 }: ArticleListProps) {
@@ -56,10 +61,11 @@ export function ArticleList({
       >
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const item = items[virtualItem.index];
+          const idx = virtualItem.index;
           return (
             <div
               key={virtualItem.key}
-              data-index={virtualItem.index}
+              data-index={idx}
               ref={virtualizer.measureElement}
               style={{
                 position: "absolute",
@@ -69,19 +75,24 @@ export function ArticleList({
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              {viewMode === "headlines" ? (
-                <HeadlineRow
-                  item={item}
-                  isSelected={virtualItem.index === selectedIndex}
-                  onClick={() => onSelect(virtualItem.index)}
-                />
-              ) : (
-                <ExpandedArticle
-                  item={item}
-                  isSelected={virtualItem.index === selectedIndex}
-                  onClick={() => onSelect(virtualItem.index)}
-                />
-              )}
+              <SwipeableRow
+                onSwipeRight={onArchive ? () => onArchive(idx) : undefined}
+                onSwipeLeft={onQueue ? () => onQueue(idx) : undefined}
+              >
+                {viewMode === "headlines" ? (
+                  <HeadlineRow
+                    item={item}
+                    isSelected={idx === selectedIndex}
+                    onClick={() => onSelect(idx)}
+                  />
+                ) : (
+                  <ExpandedArticle
+                    item={item}
+                    isSelected={idx === selectedIndex}
+                    onClick={() => onSelect(idx)}
+                  />
+                )}
+              </SwipeableRow>
             </div>
           );
         })}
@@ -190,6 +201,40 @@ function ExpandedArticle({
         </p>
       )}
     </article>
+  );
+}
+
+function SwipeableRow({
+  onSwipeRight,
+  onSwipeLeft,
+  children,
+}: {
+  onSwipeRight?: () => void;
+  onSwipeLeft?: () => void;
+  children: React.ReactNode;
+}) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const swipe = useSwipe({ onSwipeRight, onSwipeLeft, ref: contentRef });
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* Archive reveal (swipe right) */}
+      <div className="absolute inset-0 flex items-center justify-start px-6 bg-green-600/90 text-white text-sm font-medium">
+        Archive →
+      </div>
+      {/* Queue reveal (swipe left) */}
+      <div className="absolute inset-0 flex items-center justify-end px-6 bg-blue-600/90 text-white text-sm font-medium">
+        ← Queue
+      </div>
+      {/* Swipeable content */}
+      <div
+        ref={contentRef}
+        className="relative bg-background"
+        {...swipe}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 
