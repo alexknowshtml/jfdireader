@@ -9,12 +9,19 @@ import { FeedSettingsModal } from "@/components/feed/FeedSettingsModal";
 import { OpmlImportModal } from "@/components/feed/OpmlImportModal";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import {
-  CommandDialog,
+  Command,
   CommandInput,
   CommandList,
   CommandEmpty,
   CommandItem,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import * as api from "@/lib/api";
 import { hapticLight } from "@/lib/haptics";
 import type { FeedItemWithState } from "../../shared/types";
@@ -456,34 +463,104 @@ function ReaderApp() {
       </div>
 
       {/* Command palette (search) */}
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Search articles..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          {items.map((item) => (
-            <CommandItem
-              key={item.id}
-              value={item.title || ""}
-              onSelect={() => {
-                const idx = items.findIndex((i) => i.id === item.id);
-                if (idx >= 0) setSelectedIndex(idx);
-                setSearchOpen(false);
-              }}
-            >
-              <span className="text-xs text-muted-foreground mr-2">
-                {item.feedTitle}
-              </span>
-              {item.title}
-            </CommandItem>
-          ))}
-        </CommandList>
-      </CommandDialog>
+      <SearchPalette
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onSelect={(itemId) => {
+          // Navigate to the item in reading mode
+          setViewMode("reading");
+          setPendingItemId(itemId);
+          // Reload items in "all" view to ensure the item is loadable
+          setSidebarView("all");
+          setSelectedFeedId(null);
+          setSearchOpen(false);
+        }}
+      />
 
       {/* Shortcuts help */}
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
       <FeedSettingsModal feedId={settingsFeedId} onClose={() => setSettingsFeedId(null)} />
       <OpmlImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
+  );
+}
+
+function SearchPalette({ open, onOpenChange, onSelect }: { open: boolean; onOpenChange: (open: boolean) => void; onSelect: (itemId: number) => void }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<api.SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced search
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+    setSearching(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await api.searchItems(query);
+        setResults(res);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 200);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query]);
+
+  // Reset on close
+  useEffect(() => {
+    if (!open) { setQuery(""); setResults([]); }
+  }, [open]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogHeader className="sr-only">
+        <DialogTitle>Search</DialogTitle>
+        <DialogDescription>Search all articles</DialogDescription>
+      </DialogHeader>
+      <DialogContent className="top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0" showCloseButton={false}>
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Search all articles..."
+            value={query}
+            onValueChange={setQuery}
+          />
+          <CommandList>
+            {!query.trim() && <CommandEmpty>Type to search across all articles.</CommandEmpty>}
+            {query.trim() && !searching && results.length === 0 && (
+              <CommandEmpty>No results found.</CommandEmpty>
+            )}
+            {results.map((r) => (
+              <CommandItem
+                key={r.id}
+                value={`${r.id}-${r.title}`}
+                onSelect={() => onSelect(r.id)}
+              >
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {r.feedTitle}
+                    </span>
+                    <span className="truncate text-sm">{r.title}</span>
+                  </div>
+                  {r.snippet && (
+                    <span
+                      className="text-xs text-muted-foreground line-clamp-1 [&_mark]:bg-yellow-200/60 [&_mark]:text-foreground [&_mark]:rounded-sm"
+                      dangerouslySetInnerHTML={{ __html: r.snippet }}
+                    />
+                  )}
+                </div>
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }
 

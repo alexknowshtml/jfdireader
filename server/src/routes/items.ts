@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, schema } from "../db";
+import { db, schema, sqlite } from "../db";
 import { eq, desc, and, sql, isNull } from "drizzle-orm";
 
 export const itemsRouter = new Hono();
@@ -88,6 +88,48 @@ itemsRouter.get("/", async (c) => {
   }
 
   return c.json(result);
+});
+
+// Full-text search via FTS5 (must be before /:id to avoid route conflict)
+itemsRouter.get("/search", async (c) => {
+  const q = c.req.query("q")?.trim();
+  if (!q) return c.json([]);
+
+  const limit = parseInt(c.req.query("limit") || "30");
+
+  // Escape double quotes and wrap each word in quotes for safe FTS5 matching
+  const safeQuery = q
+    .replace(/"/g, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => `"${w}"`)
+    .join(" ");
+
+  try {
+    const results = sqlite
+      .query(`
+        SELECT
+          i.id, i.feed_id as feedId, i.url, i.title, i.author,
+          i.published_at as publishedAt, i.word_count as wordCount,
+          snippet(items_fts, 1, '<mark>', '</mark>', '...', 32) as snippet,
+          f.title as feedTitle, f.icon_url as feedIconUrl,
+          COALESCE(s.is_read, 0) as isRead,
+          COALESCE(s.is_starred, 0) as isStarred,
+          rank
+        FROM items_fts
+        JOIN items i ON i.id = items_fts.rowid
+        JOIN feeds f ON f.id = i.feed_id
+        LEFT JOIN item_state s ON s.item_id = i.id
+        WHERE items_fts MATCH ?
+        ORDER BY rank
+        LIMIT ?
+      `)
+      .all(safeQuery, limit);
+
+    return c.json(results);
+  } catch {
+    return c.json([]);
+  }
 });
 
 // Get a single item with full content (for reading mode)

@@ -111,6 +111,28 @@ export async function importOpml(opmlText: string): Promise<{ imported: number; 
   return res.json();
 }
 
+// Search
+export interface SearchResult {
+  id: number;
+  feedId: number;
+  url: string | null;
+  title: string | null;
+  author: string | null;
+  publishedAt: string | null;
+  wordCount: number | null;
+  snippet: string;
+  feedTitle: string | null;
+  feedIconUrl: string | null;
+  isRead: boolean;
+  isStarred: boolean;
+  rank: number;
+}
+
+export async function searchItems(query: string, limit = 30): Promise<SearchResult[]> {
+  const params = new URLSearchParams({ q: query, limit: String(limit) });
+  return fetchJSON(`/items/search?${params}`);
+}
+
 export async function recordSignal(id: number, signal: {
   scrollDepth?: number;
   dwellTimeSeconds?: number;
