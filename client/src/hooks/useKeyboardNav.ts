@@ -4,7 +4,7 @@ interface KeyboardNavOptions {
   onNext: () => void;
   onPrev: () => void;
   onOpen: () => void;          // Enter - read now / toggle reading pane
-  onArchive: () => void;       // s - archive (mark read, advance)
+  onArchive: () => void;       // a - archive (mark read, advance)
   onQueue: () => void;         // q - queue for later
   onPin: () => void;           // p - pin to top of queue
   onStar: () => void;          // f - favorite/star toggle
@@ -50,7 +50,7 @@ export function useKeyboardNav(options: KeyboardNavOptions) {
           e.preventDefault();
           options.onOpen();
           break;
-        case "s":
+        case "a":
           e.preventDefault();
           options.onArchive();
           break;

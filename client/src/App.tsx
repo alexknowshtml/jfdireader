@@ -428,7 +428,7 @@ function ReaderApp() {
               onClick={handleArchive}
               className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
-              Archive <kbd className="hidden md:inline text-[10px] opacity-60">s</kbd>
+              Archive <kbd className="hidden md:inline text-[10px] opacity-60">a</kbd>
             </button>
             <button
               onClick={handleQueue}

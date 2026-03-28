@@ -11,7 +11,7 @@ const SHORTCUTS = [
     { key: "Esc", action: "Close reading pane" },
   ]},
   { section: "Triage", keys: [
-    { key: "s", action: "Archive (mark read)" },
+    { key: "a", action: "Archive (mark read)" },
     { key: "q", action: "Queue for later" },
     { key: "p", action: "Pin to top of queue" },
     { key: "Shift+A", action: "Mark all read" },

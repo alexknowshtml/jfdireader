@@ -21,7 +21,7 @@ export function TriageBar({
       <div className="flex items-center justify-center gap-2">
         <TriageButton
           label="Archive"
-          shortcut="s"
+          shortcut="a"
           onClick={onArchive}
           variant="muted"
         />
