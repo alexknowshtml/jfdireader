@@ -62,11 +62,11 @@
    Body background fills the gap below the fixed app container. */
 @media (display-mode: standalone) {
   body {
-    background: var(--muted) !important;
+    background: var(--background) !important;
   }
 }
 html.standalone body {
-  background: var(--muted) !important;
+  background: var(--background) !important;
 }
 
 .safe-area-bottom {
