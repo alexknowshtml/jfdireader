@@ -71,7 +71,7 @@ itemsRouter.get("/", async (c) => {
     conditions.push(sql`${schema.itemState.triageAction} IN ('queue', 'pin')`);
     query = query.orderBy(
       desc(schema.itemState.isPinned),
-      desc(schema.itemState.queuedAt)
+      desc(schema.items.publishedAt)
     );
   }
 
@@ -155,7 +155,7 @@ itemsRouter.get("/queue", async (c) => {
     .innerJoin(schema.itemState, eq(schema.items.id, schema.itemState.itemId))
     .innerJoin(schema.feeds, eq(schema.items.feedId, schema.feeds.id))
     .where(sql`${schema.itemState.triageAction} IN ('queue', 'pin') AND ${schema.itemState.isRead} = 0`)
-    .orderBy(desc(schema.itemState.isPinned), desc(schema.itemState.queuedAt));
+    .orderBy(desc(schema.itemState.isPinned), desc(schema.items.publishedAt));
 
   return c.json(result);
 });
