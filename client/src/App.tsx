@@ -488,7 +488,7 @@ function ReaderApp() {
               }}
               className="text-xs px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Next →
+              Read ✓
             </button>
             <button
               onClick={() => {
