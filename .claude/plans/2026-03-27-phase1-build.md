@@ -16,7 +16,7 @@
 
 ---
 
-## Completed (25 milestones)
+## Completed (27 milestones)
 
 ### 1. Scaffold ✅
 - Bun + Hono + React 19 + shadcn/ui + Drizzle + SQLite
@@ -166,38 +166,50 @@
 - Utility at `client/src/lib/haptics.ts` with graceful no-op fallback
 - `8bf26a9` Add haptic feedback for triage actions and long-press
 
+### 26. Archive Shortcut Key ✅
+- Changed archive keyboard shortcut from `s` to `a` (mnemonic match)
+- Updated across keyboard nav hook, triage bar, shortcuts help, reading mode bar, README
+- No conflict with Shift+A (mark all read) — browser sends capital `A` for shifted key
+- `3f2baa2` Change archive keyboard shortcut from s to a
+
+### 27. README + Plan Update ✅
+- Rewrote README to lead with vision and design principles instead of API docs
+- Pulled product vision, core problem statement, and design principles from design doc
+- Updated plan with milestones 22-27
+- `0f36661` Rewrite README with vision-first framing
+
 ---
 
 ## Remaining Phase 1
 
-### 26. OPML Import UI
+### 28. OPML Import UI
 - File upload component
 - Parse OPML, show preview of feeds to import
 - Folder mapping from OPML categories
 - Backend endpoint already exists (`POST /api/feeds/import/opml`)
 
-### 27. Full-Text Search (FTS5)
+### 29. Full-Text Search (FTS5)
 - SQLite FTS5 virtual table for items
 - Search by title, content, author
 - Wire into command palette (/) and search bar
 
-### 28. Newsletter Email Ingestion
+### 30. Newsletter Email Ingestion
 - Dedicated email address per instance
 - Incoming emails → feed items
 - Sender auto-mapping to feeds
 - This unlocks the other 13 email-only sources from the starter list
 
-### 29. Reading Queue + Reading Mode Polish
+### 31. Reading Queue + Reading Mode Polish
 - Queue sorting (pinned first, then chronological or relevance)
 - Queue expiry (configurable, default 30 days)
 - Swipe gestures for mobile triage
 - Reading progress tracking (scroll depth, dwell time)
 
-### 30. PWA Setup
+### 32. PWA Setup
 - Service worker for offline support
 - Web app manifest + install prompt
 
-### 31. Docker Container
+### 33. Docker Container
 - Dockerfile (Bun runtime)
 - SQLite + cache volume mount
 - docker-compose.yml
@@ -207,8 +219,8 @@
 ## Session Stats
 
 - **Date:** 2026-03-27
-- **Commits:** 37
-- **Milestones completed:** 25 of 31
+- **Commits:** 39
+- **Milestones completed:** 27 of 33
 - **Feeds:** 13 active, ~281 items (after City Cast cleanup)
 
 ## Tech Stack
