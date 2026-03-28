@@ -454,38 +454,53 @@ function ReaderApp() {
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
-          <div className="border-t bg-muted/30 flex items-center px-4 gap-2 flex-shrink-0 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="border-t bg-muted/30 flex items-center justify-between px-4 gap-1 flex-shrink-0 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <button
               onClick={() => setViewMode("triage")}
-              className="text-xs px-3 py-2 rounded-md hover:bg-accent flex items-center gap-1.5"
+              className="text-xs px-3 py-2 rounded-md hover:bg-accent"
             >
               ← Back
-              <kbd className="hidden md:inline text-[10px] opacity-60">Esc</kbd>
-            </button>
-            <div className="flex-1" />
-            <button
-              onClick={handleArchive}
-              className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
-            >
-              Archive <kbd className="hidden md:inline text-[10px] opacity-60">a</kbd>
-            </button>
-            <button
-              onClick={handleQueue}
-              className="text-xs px-3 py-2 rounded-md bg-accent hover:bg-accent/80"
-            >
-              Queue <kbd className="hidden md:inline text-[10px] opacity-60">q</kbd>
             </button>
             <button
               onClick={handleStar}
-              className={`text-xs px-3 py-1.5 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
+              className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
             >
-              {currentItem.isStarred ? "★" : "☆"} <kbd className="hidden md:inline text-[10px] opacity-60">f</kbd>
+              {currentItem.isStarred ? "★" : "☆"}
             </button>
             <button
-              onClick={() => { if (currentItem?.url) window.open(currentItem.url, "_blank"); }}
+              onClick={handlePin}
+              className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isPinned ? "text-blue-500" : "text-muted-foreground"}`}
+            >
+              📌
+            </button>
+            <button
+              onClick={() => {
+                // Archive current item and advance to next
+                hapticLight();
+                const ctx = optimisticTriage(currentItem.id, "archive");
+                lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
+                api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+                // Advance to next item (selectedIndex stays the same, list shifts)
+                // If no more items, go back to triage view
+                if (items.length <= 1) {
+                  setViewMode("triage");
+                }
+              }}
+              className="text-xs px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Next →
+            </button>
+            <button
+              onClick={() => {
+                if (currentItem?.url && navigator.share) {
+                  navigator.share({ title: currentItem.title || "", url: currentItem.url });
+                } else if (currentItem?.url) {
+                  navigator.clipboard.writeText(currentItem.url);
+                }
+              }}
               className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
             >
-              Original <kbd className="hidden md:inline text-[10px] opacity-60">v</kbd>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
             </button>
           </div>
         )}
