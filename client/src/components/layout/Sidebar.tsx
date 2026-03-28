@@ -43,7 +43,7 @@ export function Sidebar({
   onImportOpml,
 }: SidebarProps) {
   return (
-    <div className="w-64 border-r border-sidebar-border bg-sidebar flex flex-col h-full flex-shrink-0 rounded-tr-2xl overflow-hidden">
+    <div className="w-64 border-r border-border/60 bg-sidebar flex flex-col h-full flex-shrink-0">
       <div className="p-4 pt-[max(1rem,env(safe-area-inset-top))] font-semibold text-lg tracking-tight">
         JFDI Reader
       </div>
