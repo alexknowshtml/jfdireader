@@ -18,8 +18,9 @@ export async function pollDueFeeds(): Promise<{
     .select()
     .from(schema.feeds)
     .where(
-      sql`${schema.feeds.lastFetchedAt} IS NULL
-        OR datetime(${schema.feeds.lastFetchedAt}, '+' || ${schema.feeds.pollIntervalMinutes} || ' minutes') <= datetime(${now})`
+      sql`(${schema.feeds.lastFetchedAt} IS NULL
+        OR datetime(${schema.feeds.lastFetchedAt}, '+' || ${schema.feeds.pollIntervalMinutes} || ' minutes') <= datetime(${now}))
+        AND ${schema.feeds.url} NOT LIKE 'email://%'`
     );
 
   let polled = 0;
@@ -55,6 +56,7 @@ export async function pollSingleFeed(feedId: number): Promise<{ newItems: number
     .where(sql`${schema.feeds.id} = ${feedId}`);
 
   if (!feed) throw new Error(`Feed ${feedId} not found`);
+  if (feed.url.startsWith("email://")) return { newItems: 0 };
 
   const result = await fetchFeed(feed);
   let newItems = 0;
