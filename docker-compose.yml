@@ -5,8 +5,7 @@ services:
       - "3100:3100"
     volumes:
       - reader-data:/app/data
-    environment:
-      - PORT=3100
+    env_file: .env
     restart: unless-stopped
 
 volumes:

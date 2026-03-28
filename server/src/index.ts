@@ -6,6 +6,7 @@ import { feedsRouter } from "./routes/feeds";
 import { itemsRouter } from "./routes/items";
 import { foldersRouter } from "./routes/folders";
 import { settingsRouter } from "./routes/settings";
+import { authRouter, authMiddleware } from "./auth";
 import { startPolling } from "./services/poller";
 import { startEmailPolling } from "./services/email-poller";
 import { resolve } from "path";
@@ -13,6 +14,13 @@ import { resolve } from "path";
 const app = new Hono();
 
 app.use("*", logger());
+
+// Auth routes (before middleware)
+app.route("/auth", authRouter);
+
+// Auth middleware - protects everything below
+app.use("*", authMiddleware());
+
 app.use(
   "/api/*",
   cors({
