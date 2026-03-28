@@ -641,8 +641,10 @@ function ViewButton({ label, active, onClick, count }: { label: string; active: 
       }`}
     >
       {label}
-      {count !== undefined && (
-        <span className="ml-1 text-[10px] opacity-60">{count}</span>
+      {count !== undefined && count > 0 && (
+        <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-medium rounded-full bg-primary/15 text-primary">
+          {count}
+        </span>
       )}
     </button>
   );

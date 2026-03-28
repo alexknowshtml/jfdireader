@@ -151,31 +151,54 @@ function HeadlineRow({
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left px-4 py-2.5 flex items-center gap-3 border-b border-border hover:bg-accent/50 transition-colors",
+        "w-full text-left px-4 py-3 flex items-center gap-3 border-b border-border hover:bg-accent/50 transition-colors",
         isSelected && "bg-accent ring-1 ring-primary/20",
-        item.isRead && "opacity-50"
       )}
     >
       <TriageIndicator item={item} />
+      <FeedIcon title={item.feedTitle} iconUrl={item.feedIconUrl} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
           <span
             className={cn(
               "text-sm truncate",
-              !item.isRead && "font-semibold"
+              item.isRead ? "text-muted-foreground" : "font-semibold text-foreground"
             )}
           >
             {item.title || "Untitled"}
           </span>
-          <span className="text-xs text-muted-foreground flex-shrink-0">
+          <span className={cn(
+            "text-xs flex-shrink-0",
+            item.isRead ? "text-muted-foreground/60" : "text-muted-foreground"
+          )}>
             {item.feedTitle}
           </span>
         </div>
       </div>
-      <time className="text-xs text-muted-foreground flex-shrink-0">
+      <time className={cn(
+        "text-xs flex-shrink-0",
+        item.isRead ? "text-muted-foreground/60" : "text-muted-foreground"
+      )}>
         {item.publishedAt ? formatRelativeDate(item.publishedAt) : ""}
       </time>
     </button>
+  );
+}
+
+function FeedIcon({ title, iconUrl, className }: { title: string | null; iconUrl: string | null; className?: string }) {
+  if (iconUrl) {
+    return <img src={iconUrl} alt="" className={cn("w-4 h-4 rounded-sm", className)} />;
+  }
+  // Colored initial circle fallback
+  const initial = (title || "?").charAt(0).toUpperCase();
+  const hue = (title || "").split("").reduce((sum, c) => sum + c.charCodeAt(0), 0) % 360;
+  return (
+    <span
+      className={cn("w-4 h-4 rounded-sm flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0", className)}
+      style={{ backgroundColor: `hsl(${hue}, 55%, 50%)` }}
+    >
+      {initial}
+    </span>
   );
 }
 
@@ -188,23 +211,24 @@ function ExpandedArticle({
   isSelected: boolean;
   onClick: () => void;
 }) {
+  const showAuthor = item.author && item.feedTitle && !isSameSource(item.feedTitle, item.author);
   return (
     <article
       onClick={onClick}
       className={cn(
-        "px-6 py-4 border-b border-border cursor-pointer hover:bg-accent/30 transition-colors",
+        "px-6 py-5 border-b border-border cursor-pointer hover:bg-accent/30 transition-colors",
         isSelected && "bg-accent/50 ring-1 ring-primary/20",
-        item.isRead && "opacity-50"
       )}
     >
       <header className="mb-1.5">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+        <div className={cn(
+          "flex items-center gap-2 text-xs mb-1",
+          item.isRead ? "text-muted-foreground/60" : "text-muted-foreground"
+        )}>
           <TriageIndicator item={item} />
-          {item.feedIconUrl && (
-            <img src={item.feedIconUrl} alt="" className="w-4 h-4 rounded-sm" />
-          )}
+          <FeedIcon title={item.feedTitle} iconUrl={item.feedIconUrl} />
           <span className="font-medium">{item.feedTitle}</span>
-          {item.author && (
+          {showAuthor && (
             <>
               <span>/</span>
               <span>{item.author}</span>
@@ -219,21 +243,27 @@ function ExpandedArticle({
           {item.wordCount && (
             <>
               <span>·</span>
-              <span>{Math.ceil(item.wordCount / 250)} min</span>
+              <span className="inline-flex items-center gap-0.5">
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {Math.ceil(item.wordCount / 250)}m
+              </span>
             </>
           )}
         </div>
         <h2
           className={cn(
             "text-base leading-tight",
-            !item.isRead && "font-semibold"
+            item.isRead ? "text-muted-foreground" : "font-semibold text-foreground"
           )}
         >
           {item.title || "Untitled"}
         </h2>
       </header>
       {item.summary && (
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className={cn(
+          "text-sm line-clamp-2",
+          item.isRead ? "text-muted-foreground/60" : "text-muted-foreground"
+        )}>
           {stripHtml(item.summary)}
         </p>
       )}
@@ -310,4 +340,11 @@ function formatRelativeDate(iso: string): string {
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").replace(/&[^;]+;/g, " ").trim();
+}
+
+function isSameSource(feedTitle: string, author: string): boolean {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const ft = normalize(feedTitle);
+  const au = normalize(author);
+  return ft === au || ft.includes(au) || au.includes(ft);
 }
