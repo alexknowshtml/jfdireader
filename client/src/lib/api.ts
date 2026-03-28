@@ -100,6 +100,17 @@ export async function markAllRead(feedId?: number) {
   });
 }
 
+// OPML import
+export async function importOpml(opmlText: string): Promise<{ imported: number; skipped: number; errors: number }> {
+  const res = await fetch(`${API_BASE}/feeds/import/opml`, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: opmlText,
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
 export async function recordSignal(id: number, signal: {
   scrollDepth?: number;
   dwellTimeSeconds?: number;

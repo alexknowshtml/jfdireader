@@ -25,6 +25,7 @@ interface SidebarProps {
   onSelectFeed: (feedId: number | null) => void;
   onSelectView: (view: string) => void;
   onFeedSettings: (feedId: number) => void;
+  onImportOpml: () => void;
   totalUnread: number;
   totalQueued: number;
 }
@@ -39,6 +40,7 @@ export function Sidebar({
   totalUnread,
   totalQueued,
   onFeedSettings,
+  onImportOpml,
 }: SidebarProps) {
   return (
     <div className="w-64 border-r bg-sidebar flex flex-col h-full flex-shrink-0">
@@ -157,6 +159,16 @@ export function Sidebar({
               ))}
             </>
           )}
+
+          <Separator className="my-2" />
+
+          {/* Import OPML */}
+          <button
+            onClick={onImportOpml}
+            className="w-full text-left px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-2"
+          >
+            <span className="text-base leading-none">+</span> Import OPML
+          </button>
         </div>
       </ScrollArea>
     </div>

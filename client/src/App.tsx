@@ -6,6 +6,7 @@ import { ReadingPane } from "@/components/article/ReadingPane";
 import { TriageBar } from "@/components/triage/TriageBar";
 import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
 import { FeedSettingsModal } from "@/components/feed/FeedSettingsModal";
+import { OpmlImportModal } from "@/components/feed/OpmlImportModal";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import {
   CommandDialog,
@@ -94,6 +95,7 @@ function ReaderApp() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsFeedId, setSettingsFeedId] = useState<number | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const lastAction = useRef<{ itemId: number; action: string; snapshot: FeedItemWithState[] | undefined; queryKey: any[] } | null>(null);
 
   // Fetch feeds for sidebar
@@ -333,6 +335,7 @@ function ReaderApp() {
           totalUnread={totalUnread}
           totalQueued={totalQueued}
           onFeedSettings={(id) => { setSettingsFeedId(id); setSidebarOpen(false); }}
+          onImportOpml={() => { setImportOpen(true); setSidebarOpen(false); }}
         />
       </div>
 
@@ -479,6 +482,7 @@ function ReaderApp() {
       {/* Shortcuts help */}
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
       <FeedSettingsModal feedId={settingsFeedId} onClose={() => setSettingsFeedId(null)} />
+      <OpmlImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
