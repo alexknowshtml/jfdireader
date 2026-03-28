@@ -31,10 +31,11 @@ export function ReadingPane({ item, onArchive, onQueue }: ReadingPaneProps) {
     onSwipeLeft: onQueue,
     ref: contentRef,
     onDirectionChange: setSwipeDir,
+    noTranslate: true,
   });
 
   return (
-    <div className="flex-1 overflow-auto bg-background relative">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden bg-background relative">
       {/* Swipe edge indicators */}
       {swipeDir === "right" && (
         <div className="fixed left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-emerald-500/40 to-transparent z-10 flex items-center justify-start pl-2 pointer-events-none">

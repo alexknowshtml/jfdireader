@@ -15,9 +15,10 @@ interface UseSwipeOptions {
   onSwipeLeft?: () => void;  // queue
   ref: React.RefObject<HTMLDivElement | null>;
   onDirectionChange?: (dir: "left" | "right" | null) => void;
+  noTranslate?: boolean; // skip transform — only track direction + fire callbacks
 }
 
-export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange }: UseSwipeOptions): SwipeHandlers {
+export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange, noTranslate }: UseSwipeOptions): SwipeHandlers {
   const startX = useRef(0);
   const startY = useRef(0);
   const startTime = useRef(0);
@@ -36,7 +37,7 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange }: 
     dismissed.current = false;
     triggered.current = false;
 
-    if (ref.current) {
+    if (!noTranslate && ref.current) {
       ref.current.style.transition = "none";
       ref.current.style.transform = "";
       ref.current.style.opacity = "";
@@ -73,7 +74,7 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange }: 
     // Resist overswipe with diminishing returns past threshold
     const capped = Math.sign(dx) * Math.min(Math.abs(dx), THRESHOLD * 2.5);
 
-    if (ref.current) {
+    if (!noTranslate && ref.current) {
       ref.current.style.transform = `translateX(${capped}px)`;
     }
 
@@ -87,10 +88,11 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange }: 
   const onTouchEnd = useCallback(() => {
     if (dismissed.current || !locked.current) {
       // Reset position if we never locked
-      if (ref.current) {
+      if (!noTranslate && ref.current) {
         ref.current.style.transition = "transform 200ms ease-out";
         ref.current.style.transform = "";
       }
+      onDirectionChange?.(null);
       return;
     }
 
@@ -100,25 +102,24 @@ export function useSwipe({ onSwipeRight, onSwipeLeft, ref, onDirectionChange }: 
     const pastThreshold = Math.abs(dx) >= THRESHOLD || velocity >= DISMISS_VELOCITY;
 
     if (pastThreshold && dx > 0 && onSwipeRight) {
-      // Animate out to the right
-      if (ref.current) {
+      if (!noTranslate && ref.current) {
         ref.current.style.transition = "transform 200ms ease-out, opacity 150ms ease-out";
         ref.current.style.transform = "translateX(100%)";
         ref.current.style.opacity = "0";
       }
-      // Fire callback after animation
-      setTimeout(onSwipeRight, 150);
+      onDirectionChange?.(null);
+      if (noTranslate) { onSwipeRight(); } else { setTimeout(onSwipeRight, 150); }
     } else if (pastThreshold && dx < 0 && onSwipeLeft) {
-      // Animate out to the left
-      if (ref.current) {
+      if (!noTranslate && ref.current) {
         ref.current.style.transition = "transform 200ms ease-out, opacity 150ms ease-out";
         ref.current.style.transform = "translateX(-100%)";
         ref.current.style.opacity = "0";
       }
-      setTimeout(onSwipeLeft, 150);
+      onDirectionChange?.(null);
+      if (noTranslate) { onSwipeLeft(); } else { setTimeout(onSwipeLeft, 150); }
     } else {
       // Snap back
-      if (ref.current) {
+      if (!noTranslate && ref.current) {
         ref.current.style.transition = "transform 200ms ease-out";
         ref.current.style.transform = "";
       }
