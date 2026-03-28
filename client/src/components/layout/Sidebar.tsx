@@ -2,6 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback } from "react";
+import { hapticMedium } from "@/lib/haptics";
 
 interface SidebarFeed {
   id: number;
@@ -180,6 +181,7 @@ function FeedItem({
     didLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       didLongPress.current = true;
+      hapticMedium();
       onSettings();
     }, 500);
   }, [onSettings]);

@@ -15,6 +15,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import * as api from "@/lib/api";
+import { hapticLight } from "@/lib/haptics";
 import type { FeedItemWithState } from "../../shared/types";
 
 // Simple localStorage cache for instant loads
@@ -186,6 +187,7 @@ function ReaderApp() {
 
   const handleArchive = useCallback(() => {
     if (!currentItem) return;
+    hapticLight();
     const ctx = optimisticTriage(currentItem.id, "archive");
     lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "archive").catch(() => rollback(ctx));
@@ -202,6 +204,7 @@ function ReaderApp() {
 
   const handleQueue = useCallback(() => {
     if (!currentItem) return;
+    hapticLight();
     const ctx = optimisticTriage(currentItem.id, "queue");
     lastAction.current = { itemId: currentItem.id, action: "queue", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "queue").catch(() => rollback(ctx));
@@ -209,6 +212,7 @@ function ReaderApp() {
 
   const handlePin = useCallback(() => {
     if (!currentItem) return;
+    hapticLight();
     const ctx = optimisticTriage(currentItem.id, "pin");
     lastAction.current = { itemId: currentItem.id, action: "pin", snapshot: ctx.previous, queryKey: ctx.queryKey };
     api.triageItem(currentItem.id, "pin").catch(() => rollback(ctx));
@@ -231,6 +235,7 @@ function ReaderApp() {
 
   const handleStar = useCallback(async () => {
     if (!currentItem) return;
+    hapticLight();
     await api.starItem(currentItem.id, !currentItem.isStarred);
     qc.invalidateQueries({ queryKey: ["items"] });
   }, [currentItem, qc]);
