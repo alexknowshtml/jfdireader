@@ -395,7 +395,12 @@ function ReaderApp() {
 
         {/* Main content area */}
         {viewMode === "reading" && currentItem ? (
-          <ReadingPane item={currentItem} onClose={() => setViewMode("triage")} />
+          <ReadingPane
+            item={currentItem}
+            onClose={() => setViewMode("triage")}
+            onArchive={handleArchive}
+            onQueue={handleQueue}
+          />
         ) : (
           <ArticleList
             items={items}

@@ -1,13 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getItemContent } from "@/lib/api";
+import { useSwipe } from "@/hooks/useSwipe";
 import type { FeedItemWithState } from "../../../../shared/types";
 
 interface ReadingPaneProps {
   item: FeedItemWithState;
   onClose: () => void;
+  onArchive?: () => void;
+  onQueue?: () => void;
 }
 
-export function ReadingPane({ item }: ReadingPaneProps) {
+export function ReadingPane({ item, onArchive, onQueue }: ReadingPaneProps) {
   const [content, setContent] = useState<string | null>(item.content || null);
 
   // Fetch full content on demand if not already loaded
@@ -20,8 +23,30 @@ export function ReadingPane({ item }: ReadingPaneProps) {
       setContent(item.content);
     }
   }, [item.id, item.content]);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [swipeDir, setSwipeDir] = useState<"left" | "right" | null>(null);
+
+  const swipe = useSwipe({
+    onSwipeRight: onArchive,
+    onSwipeLeft: onQueue,
+    ref: contentRef,
+    onDirectionChange: setSwipeDir,
+  });
+
   return (
-    <div className="flex-1 overflow-auto bg-background">
+    <div className="flex-1 overflow-auto bg-background relative">
+      {/* Swipe edge indicators */}
+      {swipeDir === "right" && (
+        <div className="fixed left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-emerald-500/40 to-transparent z-10 flex items-center justify-start pl-2 pointer-events-none">
+          <span className="text-emerald-600 text-xs font-semibold rotate-[-90deg] whitespace-nowrap">Archive</span>
+        </div>
+      )}
+      {swipeDir === "left" && (
+        <div className="fixed right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-purple-600/40 to-transparent z-10 flex items-center justify-end pr-2 pointer-events-none">
+          <span className="text-purple-600 text-xs font-semibold rotate-90 whitespace-nowrap">Queue</span>
+        </div>
+      )}
+      <div ref={contentRef} {...swipe}>
       <div className="max-w-2xl mx-auto py-8 px-6">
         {/* Header */}
         <div className="mb-6">
@@ -79,6 +104,7 @@ export function ReadingPane({ item }: ReadingPaneProps) {
 
         {/* Bottom spacer so content doesn't get hidden behind the bar */}
         <div className="h-16" />
+      </div>
       </div>
     </div>
   );
