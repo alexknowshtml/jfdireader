@@ -72,24 +72,27 @@ function cleanEmailHTML(html: string, title?: string): string {
       } catch { /* selector may not be supported */ }
     }
 
-    // Step 3: Flatten email layout tables
-    // Email newsletters use tables for layout (role="presentation" or just structural).
-    // Replace layout tables with their inner content so Readability sees clean HTML.
-    flattenLayoutTables(document);
+    // Step 3: Strip table markup so Readability sees clean HTML
+    // Email newsletters use tables for layout. Rather than trying to flatten them
+    // (which causes content duplication with nested tables), just strip the tags.
+    const bodyHtml = document.body?.innerHTML || document.documentElement?.innerHTML || "";
+    const tableStripped = bodyHtml
+      .replace(/<table[^>]*>/gi, "<div>")
+      .replace(/<\/table>/gi, "</div>")
+      .replace(/<t(?:body|head|foot|r|d|h)[^>]*>/gi, "")
+      .replace(/<\/t(?:body|head|foot|r|d|h)>/gi, "");
 
-    // Step 4: Run Readability on the flattened content
-    const reader = new Readability(document as any, {
+    // Re-parse the table-stripped HTML in a proper document for Readability
+    const { document: cleanDoc } = parseHTML(`<!DOCTYPE html><html><head><title>${title || ""}</title></head><body>${tableStripped}</body></html>`);
+
+    // Step 4: Run Readability on the cleaned content
+    const reader = new Readability(cleanDoc as any, {
       charThreshold: 0,
     });
     const article = reader.parse();
 
     if (article?.content) {
-      // Strip all remaining table elements (layout tables, button tables, etc.)
-      return article.content
-        .replace(/<table[^>]*>/gi, "<div>")
-        .replace(/<\/table>/gi, "</div>")
-        .replace(/<t(?:body|head|foot|r|d|h)[^>]*>/gi, "")
-        .replace(/<\/t(?:body|head|foot|r|d|h)>/gi, "");
+      return article.content;
     }
   } catch (err) {
     console.error("[email-poller] Readability failed, using fallback:", err);
@@ -97,43 +100,6 @@ function cleanEmailHTML(html: string, title?: string): string {
 
   // Fallback: strip scripts/styles, flatten tables, return
   return stripEmailLayoutFromHTML(html);
-}
-
-function flattenLayoutTables(document: any): void {
-  // Process tables from innermost to outermost
-  let tables = document.querySelectorAll('table');
-  let passes = 0;
-  const maxPasses = 10;
-
-  while (tables.length > 0 && passes < maxPasses) {
-    let changed = false;
-    tables = document.querySelectorAll('table');
-
-    for (const table of Array.from(tables) as any[]) {
-      // Skip tables that look like actual data tables (multiple rows with data)
-      const rows = table.querySelectorAll('tr');
-      const isLayoutTable =
-        table.getAttribute('role') === 'presentation' ||
-        table.getAttribute('role') === 'none' ||
-        rows.length <= 2 ||
-        // Single-column tables are almost always layout
-        table.querySelectorAll('td').length <= rows.length;
-
-      if (isLayoutTable) {
-        // Replace table with a div containing just the cell contents
-        const div = document.createElement('div');
-        const cells = table.querySelectorAll('td, th');
-        for (const cell of Array.from(cells) as any[]) {
-          div.innerHTML += cell.innerHTML;
-        }
-        table.replaceWith(div);
-        changed = true;
-      }
-    }
-
-    passes++;
-    if (!changed) break;
-  }
 }
 
 function stripEmailLayoutFromHTML(html: string): string {
