@@ -378,6 +378,13 @@ function ReaderApp() {
             })()}
             <div className="flex-1" />
             <button
+              onClick={() => setSearchOpen(true)}
+              className="text-muted-foreground px-1.5 py-1 rounded hover:bg-accent hover:text-foreground"
+              aria-label="Search"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+            <button
               onClick={() => setHelpOpen(true)}
               className="hidden md:block text-xs text-muted-foreground px-1.5 py-1 rounded hover:bg-accent"
             >
