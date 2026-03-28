@@ -3,8 +3,8 @@ import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { Resend } from "resend";
 import type { Context, Next } from "hono";
 
-// Config
-const ALLOWED_EMAILS = ["alex@indyhall.org"];
+// Config — ALLOWED_EMAILS is a comma-separated env var
+const ALLOWED_EMAILS = (process.env.ALLOWED_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
 const SESSION_MAX_AGE = 90 * 24 * 60 * 60; // 90 days in seconds
 const MAGIC_LINK_EXPIRY = 15 * 60 * 1000; // 15 minutes in ms
 const COOKIE_NAME = "jfdi_session";
