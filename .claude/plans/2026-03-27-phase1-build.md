@@ -201,23 +201,44 @@
 - `265d018` Add search icon button to toolbar for mobile access
 - `60204bb` Make search mobile-friendly: autofocus, no zoom, better positioning
 
-### 30. Newsletter Email Ingestion
+### 30. Mobile Polish ✅
+- Swipe gestures on article list: right=archive (emerald), left=queue (purple)
+- Swipe gestures on reading pane with edge gradient indicators
+- Pull-to-refresh with haptic feedback and spinner
+- Search icon in toolbar, mobile-friendly autofocus, no-zoom (16px)
+- Sidebar: rounded top-right corner, darker border, safe-area insets
+- Dynamic island area: black-translucent status bar, sidebar bg extends to bottom
+- View buttons (Inbox/Queue/Starred) exit reading mode when tapped
+- `95d185b` Add swipe gestures for mobile triage on article list
+- `c16851c` Fix swipe: correct reveal colors per direction, fix stuck state
+- `e0cbb6c` Add swipe gestures to reading pane for archive and queue
+- `f1f5a0e` Add pull-to-refresh for mobile feed refreshing
+- `28186da` Fix queue route, add sidebar polish and status bar theming
+- `8224522` Sidebar: top-right corner only, extend to bottom edge
+
+### 31. Bug Fixes & Sort Order ✅
+- Date normalization: RFC 2822 → ISO 8601 for correct chronological sort
+- Queue route 404 fix (moved /queue above /:id)
+- Queue sort: by article publish date (newest first), pinned at top
+- `8deb463` Fix article sort order by normalizing dates to ISO 8601
+- `b3a39c7` Fix queue sort order
+- `16d949d` Sort queue by article publish date
+
+---
+
+## Remaining Phase 1
+
+### 32. Newsletter Email Ingestion
 - Dedicated email address per instance
 - Incoming emails → feed items
 - Sender auto-mapping to feeds
 - This unlocks the other 13 email-only sources from the starter list
 
-### 31. Reading Queue + Reading Mode Polish
-- Queue sorting (pinned first, then chronological or relevance)
-- Queue expiry (configurable, default 30 days)
-- Swipe gestures for mobile triage
-- Reading progress tracking (scroll depth, dwell time)
-
-### 32. PWA Setup
+### 33. PWA Setup
 - Service worker for offline support
 - Web app manifest + install prompt
 
-### 33. Docker Container
+### 34. Docker Container
 - Dockerfile (Bun runtime)
 - SQLite + cache volume mount
 - docker-compose.yml
@@ -227,8 +248,8 @@
 ## Session Stats
 
 - **Date:** 2026-03-27
-- **Commits:** 44
-- **Milestones completed:** 29 of 33
+- **Commits:** 59
+- **Milestones completed:** 31 of 34
 - **Feeds:** 13 active, ~281 items (after City Cast cleanup)
 
 ## Tech Stack
