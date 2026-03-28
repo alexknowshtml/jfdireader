@@ -84,9 +84,9 @@ function cleanEmailHTML(html: string, title?: string): string {
     const article = reader.parse();
 
     if (article?.content) {
-      // Clean up any remaining table artifacts
+      // Strip all remaining table elements (layout tables, button tables, etc.)
       return article.content
-        .replace(/<table[^>]*role="presentation"[^>]*>/gi, "<div>")
+        .replace(/<table[^>]*>/gi, "<div>")
         .replace(/<\/table>/gi, "</div>")
         .replace(/<t(?:body|head|foot|r|d|h)[^>]*>/gi, "")
         .replace(/<\/t(?:body|head|foot|r|d|h)>/gi, "");
