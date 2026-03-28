@@ -105,14 +105,6 @@ function ReaderApp() {
   const [importOpen, setImportOpen] = useState(false);
   const lastAction = useRef<{ itemId: number; action: string; snapshot: FeedItemWithState[] | undefined; queryKey: any[] } | null>(null);
 
-  // Update theme-color meta tag when sidebar opens/closes
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute("content", sidebarOpen ? "#999999" : "#ffffff");
-    }
-  }, [sidebarOpen]);
-
   // Fetch feeds for sidebar
   const { data: feeds = [] } = useQuery({
     queryKey: ["feeds"],
