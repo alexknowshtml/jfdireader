@@ -93,6 +93,13 @@ export async function starItem(id: number, isStarred: boolean) {
   });
 }
 
+export async function pinItem(id: number, isPinned: boolean) {
+  return fetchJSON(`/items/${id}/pin`, {
+    method: "PATCH",
+    body: JSON.stringify({ isPinned }),
+  });
+}
+
 export async function markAllRead(feedId?: number) {
   return fetchJSON("/items/mark-all-read", {
     method: "POST",

@@ -329,6 +329,29 @@ itemsRouter.patch("/:id/star", async (c) => {
   return c.json({ ok: true });
 });
 
+// Pin/unpin item (toggle flag, does NOT change triage state)
+itemsRouter.patch("/:id/pin", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const { isPinned } = await c.req.json<{ isPinned: boolean }>();
+
+  await db
+    .insert(schema.itemState)
+    .values({
+      itemId: id,
+      isPinned,
+      pinnedAt: isPinned ? new Date().toISOString() : null,
+    })
+    .onConflictDoUpdate({
+      target: schema.itemState.itemId,
+      set: {
+        isPinned,
+        pinnedAt: isPinned ? new Date().toISOString() : null,
+      },
+    });
+
+  return c.json({ ok: true });
+});
+
 // Mark all as read (for a feed or all)
 itemsRouter.post("/mark-all-read", async (c) => {
   const { feedId } = await c.req.json<{ feedId?: number }>();

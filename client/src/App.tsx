@@ -243,28 +243,19 @@ function ReaderApp() {
     showToast("queue");
   }, [currentItem, optimisticTriage, rollback, qc, showToast]);
 
-  const handlePin = useCallback(() => {
+  const handlePin = useCallback(async () => {
     if (!currentItem) return;
     hapticLight();
-    const wasPinned = currentItem.isPinned;
-    const action = wasPinned ? "queue" : "pin";
-    const ctx = optimisticTriage(currentItem.id, action);
-
-    // For unpin, also optimistically toggle isPinned back to false
-    if (wasPinned) {
-      const queryKey = ["items", selectedFeedId, sidebarView];
-      qc.setQueryData<FeedItemWithState[]>(queryKey, (old) =>
-        old?.map((item) => item.id === currentItem.id ? { ...item, isPinned: false } : item) || []
-      );
-    }
-
-    lastAction.current = { itemId: currentItem.id, action, snapshot: ctx.previous, queryKey: ctx.queryKey };
-    api.triageItem(currentItem.id, action).then(() => {
-      qc.invalidateQueries({ queryKey: ["feeds"] });
-      qc.invalidateQueries({ queryKey: ["items"] });
-    }).catch(() => rollback(ctx));
-    showToast(wasPinned ? "unpin" : "pin");
-  }, [currentItem, optimisticTriage, rollback, qc, showToast, selectedFeedId, sidebarView]);
+    const newPinned = !currentItem.isPinned;
+    // Optimistically toggle pin flag without removing from list
+    const queryKey = ["items", selectedFeedId, sidebarView];
+    qc.setQueryData<FeedItemWithState[]>(queryKey, (old) =>
+      old?.map((item) => item.id === currentItem.id ? { ...item, isPinned: newPinned } : item) || []
+    );
+    await api.pinItem(currentItem.id, newPinned);
+    qc.invalidateQueries({ queryKey: ["items"] });
+    showToast(newPinned ? "pin" : "unpin");
+  }, [currentItem, qc, showToast, selectedFeedId, sidebarView]);
 
   const handleUndo = useCallback(() => {
     if (!lastAction.current) return;
@@ -484,8 +475,8 @@ function ReaderApp() {
         {/* Triage bar */}
         {viewMode === "triage" && currentItem && (
           <TriageBar
-            itemTitle={currentItem.title}
             isStarred={currentItem.isStarred}
+            isPinned={currentItem.isPinned}
             onArchive={handleArchive}
             onQueue={handleQueue}
             onPin={handlePin}
