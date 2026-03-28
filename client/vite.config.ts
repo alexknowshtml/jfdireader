@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'JFDI Reader',
         short_name: 'Reader',
         description: 'Your personal feed reader',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#1a0840',
+        background_color: '#1a0840',
         display: 'standalone',
         icons: [
           {
