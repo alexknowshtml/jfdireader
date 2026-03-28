@@ -486,43 +486,46 @@ function ReaderApp() {
 
         {/* Reading mode bar */}
         {viewMode === "reading" && currentItem && (
-          <div className="border-t bg-muted/30 flex items-center justify-between px-4 gap-1 flex-shrink-0 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <button
-              onClick={() => setViewMode("triage")}
-              className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
-            >
-              ← Back
-            </button>
-            <button
-              onClick={handleStar}
-              className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
-            >
-              {currentItem.isStarred ? "★" : "☆"}
-            </button>
-            <button
-              onClick={handlePin}
-              className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isPinned ? "text-purple-400" : "text-muted-foreground"}`}
-            >
-              📌
-            </button>
-            <button
-              onClick={() => {
-                // Archive current item and advance to next
-                hapticLight();
-                const ctx = optimisticTriage(currentItem.id, "archive");
-                lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
-                api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
-                showToast("read_done");
-                // Advance to next item (selectedIndex stays the same, list shifts)
-                // If no more items, go back to triage view
-                if (items.length <= 1) {
-                  setViewMode("triage");
-                }
-              }}
-              className="text-xs px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              Read ✓
-            </button>
+          <div className="flex-shrink-0 bg-muted/50 border-t">
+            <div className="flex items-center justify-between px-4 gap-1 pt-2.5 pb-3">
+              <button
+                onClick={() => setViewMode("triage")}
+                className="text-xs px-3 py-2 rounded-md text-muted-foreground hover:bg-accent"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={handleStar}
+                className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isStarred ? "text-yellow-500" : "text-muted-foreground"}`}
+              >
+                {currentItem.isStarred ? "★" : "☆"}
+              </button>
+              <button
+                onClick={handlePin}
+                className={`text-xs px-3 py-2 rounded-md hover:bg-accent ${currentItem.isPinned ? "text-purple-400" : "text-muted-foreground"}`}
+              >
+                📌
+              </button>
+              <button
+                onClick={() => {
+                  // Archive current item and advance to next
+                  hapticLight();
+                  const ctx = optimisticTriage(currentItem.id, "archive");
+                  lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
+                  api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+                  showToast("read_done");
+                  // Advance to next item (selectedIndex stays the same, list shifts)
+                  // If no more items, go back to triage view
+                  if (items.length <= 1) {
+                    setViewMode("triage");
+                  }
+                }}
+                className="text-xs px-3 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Read ✓
+              </button>
+            </div>
+            <div className="safe-area-bottom" />
           </div>
         )}
       </div>
