@@ -1,6 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useRef, useCallback } from "react";
 
 interface SidebarFeed {
   id: number;
@@ -172,13 +173,43 @@ function FeedItem({
   onSelect: () => void;
   onSettings: () => void;
 }) {
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPress = useRef(false);
+
+  const startPress = useCallback(() => {
+    didLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true;
+      onSettings();
+    }, 500);
+  }, [onSettings]);
+
+  const endPress = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleClick = useCallback(() => {
+    if (!didLongPress.current) {
+      onSelect();
+    }
+  }, [onSelect]);
+
   return (
     <div
       className={cn(
-        "group w-full text-left px-3 py-1.5 rounded-md text-sm flex justify-between items-center hover:bg-accent cursor-pointer",
+        "group w-full text-left px-3 py-1.5 rounded-md text-sm flex justify-between items-center hover:bg-accent cursor-pointer select-none",
         isSelected && "bg-accent font-medium"
       )}
-      onClick={onSelect}
+      onClick={handleClick}
+      onTouchStart={startPress}
+      onTouchEnd={endPress}
+      onTouchCancel={endPress}
+      onMouseDown={startPress}
+      onMouseUp={endPress}
+      onMouseLeave={endPress}
     >
       <span className="flex items-center gap-2 truncate">
         {feed.iconUrl ? (
