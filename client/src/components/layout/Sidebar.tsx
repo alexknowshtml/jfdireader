@@ -45,7 +45,7 @@ export function Sidebar({
   onSettings,
 }: SidebarProps) {
   return (
-    <div className="w-64 border-r border-border/60 bg-sidebar flex flex-col h-full flex-shrink-0">
+    <div className="w-64 border-r border-border/60 bg-sidebar flex flex-col h-full flex-shrink-0 min-h-0">
       <div className="p-4 font-semibold text-lg tracking-tight">
         JFDI Reader
       </div>
@@ -122,7 +122,7 @@ export function Sidebar({
         </button>
       </div>
       <Separator />
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-2">
           {/* Folders */}
           {folders.map((folder) => (
