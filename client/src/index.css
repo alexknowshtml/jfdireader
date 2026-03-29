@@ -59,14 +59,15 @@
 }
 
 /* iOS standalone: viewport doesn't reach physical screen bottom.
-   Body background fills the gap below the fixed app container. */
+   Body background fills the gap below the fixed app container.
+   Use card color so the home indicator zone blends with the nav bar. */
 @media (display-mode: standalone) {
   body {
-    background: var(--background) !important;
+    background: hsl(var(--card)) !important;
   }
 }
 html.standalone body {
-  background: var(--background) !important;
+  background: hsl(var(--card)) !important;
 }
 
 .safe-area-bottom {
