@@ -43,20 +43,17 @@
   }
   html {
     @apply font-sans;
-    height: -webkit-fill-available;
-    height: 100dvh;
-    overflow: hidden;
+    height: 100%;
   }
   body {
     @apply bg-background text-foreground;
     margin: 0;
-    height: -webkit-fill-available;
-    height: 100dvh;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
   #root {
-    height: -webkit-fill-available;
-    height: 100dvh;
+    height: 100%;
     overflow: hidden;
   }
 }
