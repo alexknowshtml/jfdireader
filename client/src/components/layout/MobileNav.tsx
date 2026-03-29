@@ -45,7 +45,7 @@ export function MobileNav({
       className="md:hidden flex-shrink-0 bg-card border-t border-border pt-1 pb-[env(safe-area-inset-bottom,0px)]"
       style={{ boxShadow: '0 -8px 24px rgba(0,0,0,0.15), 0 -2px 8px rgba(0,0,0,0.08)' }}
     >
-      <div className="grid grid-cols-4 h-12 -mb-3">
+      <div className="grid grid-cols-4 h-12 -mb-7">
         {isReading ? (
           <>
             {/* Reading mode actions */}
