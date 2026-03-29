@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { ArticleList } from "@/components/article/ArticleList";
 import { ReadingPane } from "@/components/article/ReadingPane";
 import { ShortcutsHelp } from "@/components/triage/ShortcutsHelp";
@@ -478,10 +479,10 @@ function ReaderApp() {
 
         {/* Triage bar hidden on list view for now */}
 
-        {/* Reading mode bar */}
+        {/* Reading mode bar — desktop only */}
         {viewMode === "reading" && currentItem && (
           <div
-            className="flex-shrink-0 bg-card border-t border-border"
+            className="hidden md:block flex-shrink-0 bg-card border-t border-border"
             style={{ boxShadow: '0 -8px 24px rgba(0,0,0,0.15), 0 -2px 8px rgba(0,0,0,0.08)' }}
           >
             <div className="flex items-center justify-between px-4 gap-1 pt-2.5 pb-3">
@@ -525,6 +526,36 @@ function ReaderApp() {
             <div className="safe-area-bottom" />
           </div>
         )}
+
+        {/* Mobile bottom nav — two modes */}
+        <MobileNav
+          activeView={sidebarView}
+          unreadCount={totalUnread}
+          queueCount={totalQueued}
+          onSelectView={(v) => {
+            setSelectedFeedId(null);
+            setSidebarView(v as SidebarView);
+            setViewMode("triage");
+          }}
+          onOpenSources={() => setSidebarOpen(true)}
+          isReading={viewMode === "reading" && !!currentItem}
+          isStarred={currentItem?.isStarred}
+          isPinned={currentItem?.isPinned}
+          onBack={() => setViewMode("triage")}
+          onStar={handleStar}
+          onPin={handlePin}
+          onDone={() => {
+            if (!currentItem) return;
+            hapticLight();
+            const ctx = optimisticTriage(currentItem.id, "archive");
+            lastAction.current = { itemId: currentItem.id, action: "archive", snapshot: ctx.previous, queryKey: ctx.queryKey };
+            api.triageItem(currentItem.id, "archive").then(() => qc.invalidateQueries({ queryKey: ["feeds"] })).catch(() => rollback(ctx));
+            showToast("read_done");
+            if (items.length <= 1) {
+              setViewMode("triage");
+            }
+          }}
+        />
       </div>
 
       {/* Command palette (search) */}
