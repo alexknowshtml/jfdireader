@@ -16,7 +16,10 @@ export function TriageBar({
   onStar,
 }: TriageBarProps) {
   return (
-    <div className="flex-shrink-0 bg-muted border-t">
+    <div
+      className="flex-shrink-0 bg-card border-t border-border"
+      style={{ boxShadow: '0 -8px 24px rgba(0,0,0,0.15), 0 -2px 8px rgba(0,0,0,0.08)' }}
+    >
       <div className="flex items-center justify-between px-4 gap-1 pt-2.5 pb-3">
         <button
           onClick={onStar}
