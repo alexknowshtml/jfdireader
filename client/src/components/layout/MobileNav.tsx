@@ -80,11 +80,9 @@ export function MobileNav({
           <>
             {/* List mode navigation */}
             <NavButton
-              icon={<InboxIcon />}
-              label="Inbox"
-              onClick={() => onSelectView("unread")}
-              active={activeView === "unread"}
-              badge={unreadCount}
+              icon={<SourcesIcon />}
+              label="Sources"
+              onClick={onOpenSources}
             />
             <NavButton
               icon={<QueueIcon />}
@@ -100,9 +98,11 @@ export function MobileNav({
               active={activeView === "starred"}
             />
             <NavButton
-              icon={<SourcesIcon />}
-              label="Sources"
-              onClick={onOpenSources}
+              icon={<InboxIcon />}
+              label="Inbox"
+              onClick={() => onSelectView("unread")}
+              active={activeView === "unread"}
+              badge={unreadCount}
             />
           </>
         )}

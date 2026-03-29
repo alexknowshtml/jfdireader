@@ -383,14 +383,6 @@ function ReaderApp() {
         {/* Toolbar - with safe area top padding for mobile notch */}
         <div className="border-b flex-shrink-0 pt-[env(safe-area-inset-top)]">
           <div className="h-12 flex items-center px-4 gap-2">
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden text-lg px-2 py-1.5 rounded hover:bg-accent"
-              aria-label="Open sidebar"
-            >
-              ☰
-            </button>
             <div className="flex gap-1 min-w-0">
               <ViewButton label="Inbox" active={sidebarView === "unread" && !selectedFeedId} onClick={() => { setSidebarView("unread"); setSelectedFeedId(null); setViewMode("triage"); }} count={totalUnread || undefined} />
               <ViewButton label="Queue" active={sidebarView === "queue"} onClick={() => { setSidebarView("queue"); setSelectedFeedId(null); setViewMode("triage"); }} count={totalQueued || undefined} />
