@@ -300,6 +300,14 @@ function loginPage(error?: string | null) {
       <button type="submit">Send Code</button>
     </form>
   </div>
+  <script>
+    const input = document.getElementById('email');
+    const saved = localStorage.getItem('jfdi_email');
+    if (saved) input.value = saved;
+    input.closest('form').addEventListener('submit', () => {
+      localStorage.setItem('jfdi_email', input.value);
+    });
+  </script>
 </body>
 </html>`;
 }
