@@ -42,10 +42,10 @@ export function MobileNav({
 }: MobileNavProps) {
   return (
     <nav
-      className="md:hidden flex-shrink-0 bg-card border-t border-border pb-[env(safe-area-inset-bottom,0px)]"
+      className="md:hidden flex-shrink-0 bg-card border-t border-border"
       style={{ boxShadow: '0 -8px 24px rgba(0,0,0,0.15), 0 -2px 8px rgba(0,0,0,0.08)' }}
     >
-      <div className="grid grid-cols-4 h-14">
+      <div className="grid grid-cols-4 h-12">
         {isReading ? (
           <>
             {/* Reading mode actions */}
