@@ -193,7 +193,8 @@ authRouter.post("/verify", async (c) => {
     path: "/",
   });
 
-  return c.redirect("/");
+  c.header("Location", "/");
+  return c.body(null, 302);
 });
 
 // Logout
