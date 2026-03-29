@@ -379,7 +379,7 @@ function ReaderApp() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden pb-14 md:pb-0">
         {/* Toolbar - with safe area top padding for mobile notch */}
         <div className="border-b flex-shrink-0 pt-[env(safe-area-inset-top)]">
           <div className="h-12 flex items-center px-4 gap-2">
