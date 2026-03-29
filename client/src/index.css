@@ -82,6 +82,19 @@ html.standalone .safe-area-bottom {
   height: 0;
 }
 
+/* Mobile nav bottom spacing: generous in browser, tight in PWA */
+.mobile-nav-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+@media (display-mode: standalone) {
+  .mobile-nav-bottom {
+    padding-bottom: 4px;
+  }
+}
+html.standalone .mobile-nav-bottom {
+  padding-bottom: 4px;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Geist Variable', sans-serif;
